@@ -4,6 +4,7 @@ import com.ocbc_rpp.rest.models.dto.TransactionDto;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -22,11 +23,11 @@ public class Transaction {
     private int transactionID;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="from_acc_id",foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JoinColumn(name="from_acc_id")
     private Customer creator;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name="to_acc_id",foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
+    @JoinColumn(name="to_acc_id")
     private Customer receiver;
 
     @Column(name = "transaction_date")

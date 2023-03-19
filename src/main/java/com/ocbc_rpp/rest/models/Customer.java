@@ -2,7 +2,10 @@ package com.ocbc_rpp.rest.models;
 
 import com.ocbc_rpp.rest.models.dto.CustomerDto;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -21,11 +24,20 @@ public class Customer {
     private String phoneNo; //phone_no
     private double balance;
 
-    @OneToMany(targetEntity = Transaction.class, mappedBy = "creator",fetch = FetchType.EAGER)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "creator")
+    @JoinColumn(name = "from_acc_id")
     private List<Transaction> transactionsMade;
 
-    @OneToMany(targetEntity = Transaction.class, mappedBy = "receiver")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "receiver")
+    @JoinColumn(name = "to_acc_id")
     private List<Transaction> transactionsReceive;
+
+//    @ManyToMany
+//    @JoinTable(name = "transaction_customer_tb",
+//    joinColumns = {@JoinColumn(name = "t_id")},
+//    inverseJoinColumns = {@JoinColumn(name = "c_id")})
+//
+
 
     public CustomerDto toDto(){
         return new CustomerDto(this.accountNo,this.name,this.phoneNo,this.balance);

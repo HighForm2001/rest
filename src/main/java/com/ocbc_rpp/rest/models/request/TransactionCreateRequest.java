@@ -1,5 +1,7 @@
 package com.ocbc_rpp.rest.models.request;
 
+
+
 public class TransactionCreateRequest {
     private double amount;
     private String currency;

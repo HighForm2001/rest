@@ -64,4 +64,9 @@ public class TransactionController {
     public CollectionModel<EntityModel<CustomerDto>> testLeftJoin() throws CustomerNotFoundException{
         return service.leftJoin();
     }
+
+    @GetMapping("/pageAndSort={page}")
+    public CollectionModel<EntityModel<TransactionDto>> pageAndSort(@PathVariable int page){
+        return service.pageAndSort(page);
+    }
 }

@@ -14,6 +14,9 @@ import com.ocbc_rpp.rest.models.TransactionReportSum;
 import com.ocbc_rpp.rest.models.request.TransactionCreateRequest;
 import com.ocbc_rpp.rest.exceptions.CustomerNotFoundException;
 import com.ocbc_rpp.rest.exceptions.TransactionNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -141,7 +144,7 @@ public class TransactionService {
     }
 
     private List<TransactionReportSum> generateReport(){
-        List<TransactionReportSum> transactionReportSums = transactionRepository.findAll()
+        return transactionRepository.findAll()
                 .stream()
                 .collect(Collectors
                         .groupingBy(report-> Arrays.asList(report.getCreator().getAccountNo(),report.getTransactionDate()),Collectors
@@ -156,10 +159,25 @@ public class TransactionService {
                     return t;    }
                 ).sorted((s1,s2)->s1.getId().intValue() - s2.getId().intValue())
                 .toList();
-        return transactionReportSums;
     }
     public CollectionModel<EntityModel<TransactionDto>> all(){
+
         List<EntityModel<TransactionDto>> transactions = assembler.toDtoList(transactionRepository.findAll())
+                .stream()
+                .map(assembler::toModel)
+                .toList();
+
+        return CollectionModel.
+                of(transactions,
+                        linkTo(methodOn(TransactionController.class)
+                                .all())
+                                .withSelfRel());
+    }
+    public CollectionModel<EntityModel<TransactionDto>> pageAndSort(int page){
+        Page<Transaction> all = transactionRepository.findAll(PageRequest.of(page,5));
+        Sort.TypedSort<Transaction> type = Sort.sort(Transaction.class);
+        Sort sort = type.by(Transaction::getAmount).descending();
+        List<EntityModel<TransactionDto>> transactions = assembler.toDtoList(all.getContent())
                 .stream()
                 .map(assembler::toModel)
                 .toList();
