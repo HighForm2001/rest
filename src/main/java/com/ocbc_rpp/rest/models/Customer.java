@@ -1,6 +1,5 @@
 package com.ocbc_rpp.rest.models;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ocbc_rpp.rest.models.dto.CustomerDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

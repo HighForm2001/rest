@@ -4,6 +4,7 @@ import com.ocbc_rpp.rest.controllers.CustomerController;
 import com.ocbc_rpp.rest.exceptions.CustomerNotFoundException;
 import com.ocbc_rpp.rest.models.Customer;
 import com.ocbc_rpp.rest.models.dto.CustomerDto;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;
@@ -16,7 +17,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Component
 public class CustomerModelAssembler implements RepresentationModelAssembler<CustomerDto, EntityModel<CustomerDto>> {
     @Override
-    public EntityModel<CustomerDto> toModel(CustomerDto customer) {
+    public @NotNull EntityModel<CustomerDto> toModel(@NotNull CustomerDto customer) {
         try{
             return EntityModel.of(customer,linkTo(methodOn(CustomerController.class).one(customer.getAccountNo())).withSelfRel(),
                     linkTo(methodOn(CustomerController.class).all()).withRel("/api/customers"));

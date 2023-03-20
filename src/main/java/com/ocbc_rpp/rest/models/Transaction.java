@@ -3,9 +3,12 @@ package com.ocbc_rpp.rest.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ocbc_rpp.rest.models.dto.TransactionDto;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -38,6 +41,9 @@ public class Transaction {
 
     public void setTransaction_date(){
         this.transactionDate = LocalDateTime.now();
+    }
+    public LocalDate getDate(){
+        return transactionDate.toLocalDate();
     }
 
     public TransactionDto toDTO(){

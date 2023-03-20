@@ -1,22 +1,19 @@
 package com.ocbc_rpp.rest.services;
 
-import com.ocbc_rpp.rest.assemblers.CustomerModelAssembler;
 import com.ocbc_rpp.rest.assemblers.TransactionModelAssembler;
 import com.ocbc_rpp.rest.assemblers.TransactionReportModelAssembler;
 import com.ocbc_rpp.rest.controllers.TransactionController;
-import com.ocbc_rpp.rest.models.dto.CustomerDto;
-import com.ocbc_rpp.rest.models.dto.TransactionDto;
-import com.ocbc_rpp.rest.repositories.CustomerRepository;
-import com.ocbc_rpp.rest.repositories.TransactionRepository;
+import com.ocbc_rpp.rest.exceptions.CustomerNotFoundException;
+import com.ocbc_rpp.rest.exceptions.NoSuchPageException;
+import com.ocbc_rpp.rest.exceptions.TransactionNotFoundException;
 import com.ocbc_rpp.rest.models.Customer;
 import com.ocbc_rpp.rest.models.Transaction;
 import com.ocbc_rpp.rest.models.TransactionReportSum;
+import com.ocbc_rpp.rest.models.dto.TransactionDto;
 import com.ocbc_rpp.rest.models.request.TransactionCreateRequest;
-import com.ocbc_rpp.rest.exceptions.CustomerNotFoundException;
-import com.ocbc_rpp.rest.exceptions.TransactionNotFoundException;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import com.ocbc_rpp.rest.repositories.CustomerRepository;
+import com.ocbc_rpp.rest.repositories.TransactionRepository;
+import org.springframework.data.domain.*;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -24,34 +21,31 @@ import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Service
-public class TransactionService {
+public class    TransactionService {
     private final TransactionRepository transactionRepository;
     private final CustomerRepository customerRepository;
     private final TransactionModelAssembler assembler;
     private final TransactionReportModelAssembler reportAssembler;
-    private final CustomerModelAssembler customerAssembler;
 
-    public TransactionService(TransactionRepository repo, CustomerRepository cusRepo, TransactionModelAssembler assembler, TransactionReportModelAssembler reportAssembler,
-                              CustomerModelAssembler customerAssembler){
+    public TransactionService(TransactionRepository repo, CustomerRepository cusRepo, TransactionModelAssembler assembler, TransactionReportModelAssembler reportAssembler){
         this.transactionRepository = repo;
         this.customerRepository = cusRepo;
         this.assembler = assembler;
         this.reportAssembler = reportAssembler;
-        this.customerAssembler = customerAssembler;
     }
 
-    public ResponseEntity<?> newTransaction(TransactionCreateRequest transaction) throws CustomerNotFoundException, TransactionNotFoundException {
+    public ResponseEntity<?> newTransaction(TransactionCreateRequest transaction) throws CustomerNotFoundException {
 
         // assume both customer is valid (add validation on Customer Controller)
         Customer from = customerRepository.findById(transaction.getFrom_acc())
@@ -93,24 +87,7 @@ public class TransactionService {
         return assembler.toModel(transaction.toDTO());
     }
 
-//    @GetMapping("/filter/inner{id}")
-//    public CollectionModel<EntityModel<Transaction>> findTransactionInner(@PathVariable Long id) throws TransactionNotFoundException, CustomerNotFoundException {
-//        Customer customer = customerRepository.findById(id).orElseThrow(()->new CustomerNotFoundException(id));
-//        List<EntityModel<Transaction>> transactions = repository.findByCreatorOrTransactionID(customer, id).stream().map(assembler::toModel).toList();
-//        return CollectionModel
-//                .of(transactions,linkTo(methodOn(TransactionController.class).findTransactionInner(id)).withSelfRel());
-//
-//    }
 
-    public CollectionModel<EntityModel<TransactionDto>> findTransactionLeft(Long id) throws TransactionNotFoundException, CustomerNotFoundException {
-        Customer customer = customerRepository.findById(id).orElseThrow(()->new CustomerNotFoundException(id));
-        List<EntityModel<TransactionDto>> transactions = assembler.toDtoList(transactionRepository.findByCreator(customer))
-                .stream()
-                .map(assembler::toModel)
-                .toList();
-        return  CollectionModel
-                .of(transactions,linkTo(methodOn(TransactionController.class).findTransactionLeft(id)).withSelfRel());
-    }
 
 
     public CollectionModel<EntityModel<TransactionDto>> findTransactionWithout(Long id, Long id2) throws  CustomerNotFoundException{
@@ -125,10 +102,6 @@ public class TransactionService {
     }
 
     public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWithId(Long id) throws  CustomerNotFoundException{
-//        List<EntityModel<TransactionReportSum>> balances = repository.findTotalTransfered(id)
-//                .stream()
-//                .map(reportAssembler::toModel)
-//                .toList();
         List<TransactionReportSum> transactionReportSums = generateReport().stream().filter(s1->s1.getId().equals(id)).toList();
         List<EntityModel<TransactionReportSum>> reports = transactionReportSums.stream().map(reportAssembler::toModel).toList();
         Link self = linkTo(methodOn(TransactionController.class).sumTotalDateWithId(id)).withSelfRel();
@@ -147,17 +120,18 @@ public class TransactionService {
         return transactionRepository.findAll()
                 .stream()
                 .collect(Collectors
-                        .groupingBy(report-> Arrays.asList(report.getCreator().getAccountNo(),report.getTransactionDate()),Collectors
+                        .groupingBy(report-> Arrays.asList(report.getCreator().getName(),report.getCreator().getAccountNo(),report.getDate()),Collectors
                                 .summingDouble(Transaction::getAmount)))
                 .entrySet()
                 .stream()
                 .map(entry->{
                     TransactionReportSum t = new TransactionReportSum();
                     t.setAmount(entry.getValue());
-                    t.setId(Long.parseLong(entry.getKey().get(0).toString()));
-                    t.setDateTime((LocalDateTime)entry.getKey().get(1));
+                    t.setName(entry.getKey().get(0).toString());
+                    t.setId((Long) entry.getKey().get(1));
+                    t.setDateTime((LocalDate)entry.getKey().get(2));
                     return t;    }
-                ).sorted((s1,s2)->s1.getId().intValue() - s2.getId().intValue())
+                ).sorted(Comparator.comparingLong(TransactionReportSum::getId))
                 .toList();
     }
     public CollectionModel<EntityModel<TransactionDto>> all(){
@@ -173,10 +147,11 @@ public class TransactionService {
                                 .all())
                                 .withSelfRel());
     }
-    public CollectionModel<EntityModel<TransactionDto>> pageAndSort(int page){
-        Page<Transaction> all = transactionRepository.findAll(PageRequest.of(page,5));
+    public CollectionModel<EntityModel<TransactionDto>> pageAndSort(int page) throws NoSuchPageException {
+
         Sort.TypedSort<Transaction> type = Sort.sort(Transaction.class);
-        Sort sort = type.by(Transaction::getAmount).descending();
+        Sort sort = type.by(Transaction::getAmount).ascending();
+        Page<Transaction> all = transactionRepository.findAll(PageRequest.of(page,5,sort));
         List<EntityModel<TransactionDto>> transactions = assembler.toDtoList(all.getContent())
                 .stream()
                 .map(assembler::toModel)
@@ -185,29 +160,32 @@ public class TransactionService {
         return CollectionModel.
                 of(transactions,
                         linkTo(methodOn(TransactionController.class)
-                                .all())
+                                .pageAndSort(page))
                                 .withSelfRel());
     }
 
-    public CollectionModel<EntityModel<CustomerDto>> testJoin() throws CustomerNotFoundException{
-        List<EntityModel<CustomerDto>> test1 = customerAssembler.toDto(customerRepository.findAllByTransactionsMadeIsNotNull())
-                .stream().map(customerAssembler::toModel).toList();
-        Link self = linkTo(methodOn(TransactionController.class).testJoin()).withSelfRel();
-        return generate_CollectionModel(test1,self);
+    public CollectionModel<EntityModel<TransactionDto>> pageAndSortMultiple(int page) throws NoSuchPageException {
+        Sort.TypedSort<Transaction> type = Sort.sort(Transaction.class);
+        Sort sort = type.by(Transaction::getAmount).ascending().and(type.by(Transaction::getTransactionDate).descending());
+        Page<Transaction> all = transactionRepository.findAll(PageRequest.of(page,3,sort));
+        List<EntityModel<TransactionDto>> transactions = assembler.toDtoList(all.getContent())
+                .stream()
+                .map(assembler::toModel)
+                .toList();
+
+        return CollectionModel.
+                of(transactions,
+                        linkTo(methodOn(TransactionController.class)
+                                .pageAndSortMultiple(page))
+                                .withSelfRel());
     }
 
-    public CollectionModel<EntityModel<CustomerDto>> leftJoin() throws CustomerNotFoundException{
-        List<Customer> test2 = customerRepository.findAllByTransactionsMadeIsNotNullOrTransactionsMadeIsNull();
-        List<EntityModel<CustomerDto>> test = customerAssembler.toDto(test2)
-                .stream().map(customerAssembler::toModel).toList();
-        Link self = linkTo(methodOn(TransactionController.class).testLeftJoin()).withSelfRel();
-        return  generate_CollectionModel(test,self);
-    }
+
 
     private <T> CollectionModel<EntityModel<T>> generate_CollectionModel(List<EntityModel<T>> list, Link selfLink){
         Link link1 = linkTo(methodOn(TransactionController.class).all()).withRel("api/transaction");
         Link link2 = linkTo(methodOn(TransactionController.class).sumTotal()).withRel("api/transaction/total");
-        List<Link> links = new LinkedList<Link>();
+        List<Link> links = new LinkedList<>();
         links.add(link1);
         links.add(link2);
         if (link1.getHref().equals(selfLink.getHref())){
@@ -221,5 +199,19 @@ public class TransactionService {
             links.add(selfLink);
         }
         return CollectionModel.of(list,links);
+    }
+
+
+    public CollectionModel<EntityModel<TransactionReportSum>> JpqlTest() {
+        List<TransactionReportSum> report = transactionRepository.leftJoinAndSumJPQL();
+        List<EntityModel<TransactionReportSum>> reportEntity = report.stream().map(reportAssembler::toModel).toList();
+        return CollectionModel.of(reportEntity,linkTo(methodOn(TransactionController.class).JpqlTest()).withSelfRel());
+    }
+
+    public CollectionModel<EntityModel<TransactionDto>> pageSlice(String name,int page) throws NoSuchPageException {
+        Pageable paging = PageRequest.of(page,2);
+        Slice<Transaction> slice = transactionRepository.findByCreator_Name(name,paging);
+        List<EntityModel<TransactionDto>> list = assembler.toDtoList(slice.getContent()).stream().map(assembler::toModel).toList();
+        return CollectionModel.of(list,linkTo(methodOn(TransactionController.class).pageSlice(page,name)).withSelfRel());
     }
 }

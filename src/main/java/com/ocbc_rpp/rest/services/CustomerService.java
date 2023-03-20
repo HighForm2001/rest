@@ -40,7 +40,7 @@ public class CustomerService {
         return assembler.toModel(customer.toDto());
     }
 
-    public ResponseEntity<?> newCustomer(Customer customer) throws CustomerNotFoundException {
+    public ResponseEntity<?> newCustomer(Customer customer) {
         EntityModel<CustomerDto> newCustomer = assembler.toModel(repository.save(customer).toDto());
         return ResponseEntity
                 .created(newCustomer
