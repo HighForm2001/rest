@@ -214,4 +214,13 @@ public class    TransactionService {
         List<EntityModel<TransactionDto>> list = assembler.toDtoList(slice.getContent()).stream().map(assembler::toModel).toList();
         return CollectionModel.of(list,linkTo(methodOn(TransactionController.class).pageSlice(page,name)).withSelfRel());
     }
+
+    public CollectionModel<EntityModel<TransactionReportSum>> QueryTest() {
+        List<TransactionReportSum> report= transactionRepository.findGroupByReportWithNativeQuery()
+                .stream()
+                .map(iReport-> new TransactionReportSum(iReport.getName(),iReport.getId(),iReport.getDate(),iReport.getAmount()))
+                .toList();
+        List<EntityModel<TransactionReportSum>> entityModels = report.stream().map(reportAssembler::toModel).toList();
+        return CollectionModel.of(entityModels,linkTo(methodOn(TransactionController.class).QueryTest()).withSelfRel());
+    }
 }

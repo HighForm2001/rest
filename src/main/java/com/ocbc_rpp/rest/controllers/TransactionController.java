@@ -79,4 +79,9 @@ public class TransactionController {
         return service.JpqlTest();
     }
 
+    @GetMapping("/NativeQLeftJoinSum")
+    public CollectionModel<EntityModel<TransactionReportSum>> QueryTest(){
+        return service.QueryTest();
+    }
+
 }

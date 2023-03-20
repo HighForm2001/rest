@@ -3,6 +3,7 @@ package com.ocbc_rpp.rest.repositories;
 import com.ocbc_rpp.rest.models.Customer;
 import com.ocbc_rpp.rest.models.Transaction;
 import com.ocbc_rpp.rest.models.TransactionReportSum;
+import com.ocbc_rpp.rest.models.TransactionReportSumInterface;
 import com.ocbc_rpp.rest.models.dto.TransactionDto;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
@@ -16,8 +17,12 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction,Long> {
 
-    @Query(value = "select new com.ocbc_rpp.rest.models.TransactionReportSum(c.name,c.accountNo, cast(t.transactionDate as localdate),case when (c.transactionsMade IS null) then 0 else (SUM(t.amount)) end) FROM Customer c left join c.transactionsMade t group by c.accountNo, c.name, cast(t.transactionDate as localdate ) order by c.accountNo")
+    @Query(value = "select new com.ocbc_rpp.rest.models.TransactionReportSum(c.name,c.accountNo, cast(t.transactionDate as localdate),SUM(case when t is null then 0 else t.amount end)) FROM Customer c left join c.transactionsMade t group by c.accountNo, c.name, cast(t.transactionDate as localdate ) order by c.accountNo")
     List<TransactionReportSum> leftJoinAndSumJPQL();
+
+    @Query(value = "SELECT t.from_acc_id, c.name, DATE(t.transaction_date), SUM(t.amount) FROM transaction_t t left join customer_t c on t.from_acc_id = c.account_no group by t.from_acc_id, c.name, Date(t.transaction_date)",nativeQuery = true)
+    List<TransactionReportSumInterface> findGroupByReportWithNativeQuery();
+
     List<Transaction> findByCreatorAndReceiverNot(Customer receiver, Customer creator);
 
     Slice<Transaction> findByCreator_Name(String name, Pageable page);
