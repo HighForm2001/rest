@@ -218,7 +218,7 @@ public class    TransactionService {
     public CollectionModel<EntityModel<TransactionReportSum>> QueryTest() {
         List<TransactionReportSum> report= transactionRepository.findGroupByReportWithNativeQuery()
                 .stream()
-                .map(iReport-> new TransactionReportSum(iReport.getName(),iReport.getId(),iReport.getDate(),iReport.getAmount()))
+                .map(iReport-> new TransactionReportSum(iReport.getName(),iReport.getAccount_No(),iReport.getDate(),iReport.getTotal_Amount()))
                 .toList();
         List<EntityModel<TransactionReportSum>> entityModels = report.stream().map(reportAssembler::toModel).toList();
         return CollectionModel.of(entityModels,linkTo(methodOn(TransactionController.class).QueryTest()).withSelfRel());

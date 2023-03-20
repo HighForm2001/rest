@@ -16,8 +16,8 @@ public class TransactionReportSum {
     private String name;
     private Long id;
     private LocalDate dateTime;
-    private double amount;
-    public TransactionReportSum(String name, Long id, LocalDateTime dateTime, double amount){
+    private Double amount;
+    public TransactionReportSum(String name, Long id, LocalDateTime dateTime, Double amount){
         this.name = name;
         this.id = id;
         this.dateTime = dateTime.toLocalDate();

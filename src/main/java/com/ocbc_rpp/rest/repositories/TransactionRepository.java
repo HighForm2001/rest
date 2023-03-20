@@ -17,10 +17,23 @@ import java.util.List;
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction,Long> {
 
-    @Query(value = "select new com.ocbc_rpp.rest.models.TransactionReportSum(c.name,c.accountNo, cast(t.transactionDate as localdate),SUM(case when t is null then 0 else t.amount end)) FROM Customer c left join c.transactionsMade t group by c.accountNo, c.name, cast(t.transactionDate as localdate ) order by c.accountNo")
+    @Query(value = "select new com.ocbc_rpp.rest.models.TransactionReportSum" +
+            "(c.name,c.accountNo, cast(t.transactionDate as localdate)," +
+            "SUM(case when t is null then 0 else t.amount end)) " +
+            "FROM Customer c left join c.transactionsMade t group by " +
+            "c.accountNo, c.name, cast(t.transactionDate as localdate ) " +
+            "order by c.accountNo")
     List<TransactionReportSum> leftJoinAndSumJPQL();
 
-    @Query(value = "SELECT t.from_acc_id, c.name, DATE(t.transaction_date), COALESCE(SUM(t.amount),0) as total_amount FROM transaction_t t right join customer_t c on t.from_acc_id = c.account_no group by t.from_acc_id, c.name, Date(t.transaction_date) order by t.from_acc_id",nativeQuery = true)
+
+    //Note: The getFunction in TransactionReportSumInterface must get the
+    //      exact name of the query. FOr example, getAccount_No to get c.account_no
+    //      getTotal_Amount to get total_amount.
+    //      if the get method is not same wit the name in the query, it will return null.
+    @Query(value = "SELECT c.name, c.account_no, DATE(t.transaction_date)" +
+            ", COALESCE(SUM(t.amount),0) as total_amount FROM customer_t c" +
+            " left join transaction_t t on c.account_no = t.from_acc_id Group by" +
+            " c.account_no, c.name, Date(t.transaction_date) Order by c.account_no",nativeQuery = true)
     List<TransactionReportSumInterface> findGroupByReportWithNativeQuery();
 
     List<Transaction> findByCreatorAndReceiverNot(Customer receiver, Customer creator);
