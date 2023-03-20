@@ -24,7 +24,17 @@ public class CustomerModelAssembler implements RepresentationModelAssembler<Cust
             throw new RuntimeException(e);
         }
     }
+
+    public EntityModel<Customer> toModel(Customer customer) {
+        try{
+            return EntityModel.of(customer,linkTo(methodOn(CustomerController.class).one(customer.getAccountNo())).withSelfRel(),
+                    linkTo(methodOn(CustomerController.class).all()).withRel("/api/customers"));
+        }catch (CustomerNotFoundException e){
+            throw new RuntimeException(e);
+        }
+    }
+
     public List<CustomerDto> toDto(List<Customer> customers){
-        return customers.stream().map(customer -> new CustomerDto(customer.getAccountNo(),customer.getName(),customer.getPhoneNo(),customer.getBalance())).toList();
+        return customers.stream().map(Customer::toDto).toList();
     }
 }

@@ -35,13 +35,6 @@ public class TransactionModelAssembler implements RepresentationModelAssembler<T
     }
     public List<TransactionDto> toDtoList(List<Transaction> transactions){
         return transactions.stream()
-                .map(transaction -> new TransactionDto(
-                        transaction.getTransaction_reference(),
-                        transaction.getAmount(),
-                        transaction.getCurrency(),
-                        transaction.getTransactionDate(),
-                        transaction.getCreator().getAccountNo(),
-                        transaction.getReceiver().getAccountNo()
-                )).toList();
+                .map(Transaction::toDTO).toList();
     }
 }

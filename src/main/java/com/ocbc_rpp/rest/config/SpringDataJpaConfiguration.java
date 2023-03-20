@@ -1,6 +1,7 @@
 package com.ocbc_rpp.rest.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
@@ -20,7 +21,7 @@ import javax.sql.DataSource;
 public class SpringDataJpaConfiguration {
 
     @Bean
-    public DataSource dataSource(){
+    public DruidDataSource dataSource(){
         DruidDataSource dataSource = new DruidDataSource();
         dataSource.setUsername("postgres");
         dataSource.setPassword("1234");
@@ -29,17 +30,22 @@ public class SpringDataJpaConfiguration {
         return dataSource;
     }
 
-    @Bean
-    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(){
-        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        vendorAdapter.setGenerateDdl(true);
-
-        LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
-        factory.setJpaVendorAdapter(vendorAdapter);
-        factory.setPackagesToScan("com/ocbc_rpp/rest/models");
-        factory.setDataSource(dataSource());
-        return factory;
-    }
+//    @Bean
+//    public LocalContainerEntityManagerFactoryBean entityManagerFactoryBean(){
+//        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+//        vendorAdapter.setGenerateDdl(true);
+//
+//        LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+//        factory.setJpaVendorAdapter(vendorAdapter);
+//        factory.setPackagesToScan("com/ocbc_rpp/rest/models");
+//        factory.setDataSource(dataSource());
+//        return factory;
+//    }
+//
+//    @Bean
+//    public EntityManagerFactory entityManagerFactory(){
+//
+//    }
 
 //    @Bean
 //    public PlatformTransactionManager transactionManager(EntityManagerFactory entityManagerFactory){

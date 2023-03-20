@@ -1,5 +1,6 @@
 package com.ocbc_rpp.rest.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ocbc_rpp.rest.models.dto.TransactionDto;
 import jakarta.persistence.*;
 import lombok.*;
@@ -22,12 +23,14 @@ public class Transaction {
     @Column(name = "transaction_id")
     private int transactionID;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="from_acc_id")
+    @JsonIgnore
     private Customer creator;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="to_acc_id")
+    @JsonIgnore
     private Customer receiver;
 
     @Column(name = "transaction_date")
@@ -40,4 +43,7 @@ public class Transaction {
     public TransactionDto toDTO(){
         return new TransactionDto(this.getTransaction_reference(),this.amount,this.currency,this.transactionDate,this.getCreator().getAccountNo(),this.receiver.getAccountNo());
     }
+
+
+
 }

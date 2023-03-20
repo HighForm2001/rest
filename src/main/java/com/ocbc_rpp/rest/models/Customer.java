@@ -1,5 +1,6 @@
 package com.ocbc_rpp.rest.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.ocbc_rpp.rest.models.dto.CustomerDto;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -11,10 +12,10 @@ import java.util.List;
 
 @Entity
 @Table(name="customer_t")
-@Getter
-@Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
+@Setter
 public class Customer {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,11 +26,9 @@ public class Customer {
     private double balance;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "creator")
-    @JoinColumn(name = "from_acc_id")
     private List<Transaction> transactionsMade;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "receiver")
-    @JoinColumn(name = "to_acc_id")
     private List<Transaction> transactionsReceive;
 
 //    @ManyToMany
@@ -37,7 +36,6 @@ public class Customer {
 //    joinColumns = {@JoinColumn(name = "t_id")},
 //    inverseJoinColumns = {@JoinColumn(name = "c_id")})
 //
-
 
     public CustomerDto toDto(){
         return new CustomerDto(this.accountNo,this.name,this.phoneNo,this.balance);

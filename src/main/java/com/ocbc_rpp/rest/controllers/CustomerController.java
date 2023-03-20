@@ -30,4 +30,13 @@ public class CustomerController {
     public ResponseEntity<?> newCustomer(@RequestBody Customer customer) throws CustomerNotFoundException {
         return service.newCustomer(customer);
     }
+
+    @GetMapping("/transaction") // left join
+    public CollectionModel<EntityModel<Customer>> all_with_transaction(){
+        return service.all_with_transaction();
+    }
+    @GetMapping("/didTransaction")
+    public CollectionModel<EntityModel<Customer>> did_Transaction(){
+        return service.did_Transaction();
+    }
 }

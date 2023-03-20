@@ -48,4 +48,22 @@ public class CustomerService {
                         .toUri())
                 .body(newCustomer);
     }
+
+    public CollectionModel<EntityModel<Customer>> all_with_transaction(){
+        List<EntityModel<Customer>> customer = repository
+                .findAll()
+                .stream()
+                .map(assembler::toModel)
+                .toList();
+        return CollectionModel.
+                of(customer,linkTo(methodOn(CustomerController.class)
+                        .all_with_transaction())
+                        .withSelfRel());
+    }
+
+    public CollectionModel<EntityModel<Customer>> did_Transaction(){
+        List<EntityModel<Customer>> customer = repository.findAllByTransactionsMadeIsNotNull()
+                .stream().map(assembler::toModel).toList();
+        return CollectionModel.of(customer,linkTo(methodOn(CustomerController.class).did_Transaction()).withSelfRel());
+    }
 }
