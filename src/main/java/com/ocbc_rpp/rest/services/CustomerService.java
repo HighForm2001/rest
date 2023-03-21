@@ -2,10 +2,14 @@ package com.ocbc_rpp.rest.services;
 
 import com.ocbc_rpp.rest.assemblers.CustomerModelAssembler;
 import com.ocbc_rpp.rest.controllers.CustomerController;
+import com.ocbc_rpp.rest.models.CustomerInfo;
 import com.ocbc_rpp.rest.models.dto.CustomerDto;
 import com.ocbc_rpp.rest.repositories.CustomerRepository;
 import com.ocbc_rpp.rest.models.Customer;
 import com.ocbc_rpp.rest.exceptions.CustomerNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
@@ -65,5 +69,35 @@ public class CustomerService {
         List<EntityModel<Customer>> customer = repository.findAllByTransactionsMadeIsNotNull()
                 .stream().map(assembler::toModel).toList();
         return CollectionModel.of(customer,linkTo(methodOn(CustomerController.class).did_Transaction()).withSelfRel());
+    }
+
+    public CollectionModel<EntityModel<CustomerInfo>> test_case_native() {
+        List<EntityModel<CustomerInfo>> info = repository.findCustomerInfoNative()
+                .stream()
+                .map(iInfo ->
+                        new CustomerInfo(iInfo.getAccount_No(), iInfo.getName(),iInfo.getPhone_No(),iInfo.getBalance(),iInfo.getCode()))
+                .toList()
+                .stream()
+                .map(assembler::toModel)
+                .toList();
+        return CollectionModel.of(info,linkTo(methodOn(CustomerController.class).test_case_native()).withSelfRel());
+
+    }
+
+    public CollectionModel<EntityModel<CustomerInfo>> test_case_jpql() {
+        List<EntityModel<CustomerInfo>> info = repository
+                .findCustomerInfoJpql()
+                .stream()
+                .map(assembler::toModel)
+                .toList();
+        return CollectionModel.of(info,linkTo(methodOn(CustomerController.class).test_case_jpql()).withSelfRel());
+    }
+
+    public CollectionModel<EntityModel<CustomerInfo>> test_case_page(int page_size){
+        Sort.TypedSort<CustomerInfo> sort = Sort.sort(CustomerInfo.class);
+        Sort type = sort.by(CustomerInfo::getAccountNo).descending().and(sort.by(CustomerInfo::getBalance).ascending());
+        Page<CustomerInfo> page = repository.findCustomerInfoJpql(PageRequest.of(page_size,5,type));
+        List<EntityModel<CustomerInfo>> info = page.getContent().stream().map(assembler::toModel).toList();
+        return CollectionModel.of(info,linkTo(methodOn(CustomerController.class).test_case_page(page_size)).withSelfRel());
     }
 }

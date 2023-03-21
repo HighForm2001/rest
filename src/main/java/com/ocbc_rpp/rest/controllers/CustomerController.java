@@ -2,6 +2,7 @@ package com.ocbc_rpp.rest.controllers;
 
 import com.ocbc_rpp.rest.models.Customer;
 import com.ocbc_rpp.rest.exceptions.CustomerNotFoundException;
+import com.ocbc_rpp.rest.models.CustomerInfo;
 import com.ocbc_rpp.rest.models.dto.CustomerDto;
 import com.ocbc_rpp.rest.services.CustomerService;
 import org.springframework.hateoas.CollectionModel;
@@ -27,7 +28,7 @@ public class CustomerController {
         return service.one(id);
     }
     @PostMapping
-    public ResponseEntity<?> newCustomer(@RequestBody Customer customer) throws CustomerNotFoundException {
+    public ResponseEntity<?> newCustomer(@RequestBody Customer customer) {
         return service.newCustomer(customer);
     }
 
@@ -38,5 +39,19 @@ public class CustomerController {
     @GetMapping("/didTransaction")
     public CollectionModel<EntityModel<Customer>> did_Transaction(){
         return service.did_Transaction();
+    }
+
+    @GetMapping("/testCaseNative")
+    public CollectionModel<EntityModel<CustomerInfo>> test_case_native(){
+        return service.test_case_native();
+    }
+    @GetMapping("/testCaseJPQL")
+    public CollectionModel<EntityModel<CustomerInfo>> test_case_jpql(){
+        return service.test_case_jpql();
+    }
+
+    @GetMapping("/testCase/page={page}")
+    public CollectionModel<EntityModel<CustomerInfo>> test_case_page(@PathVariable int page) {
+        return service.test_case_page(page);
     }
 }

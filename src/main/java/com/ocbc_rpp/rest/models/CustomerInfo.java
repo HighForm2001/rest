@@ -5,9 +5,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class CustomerTransaction {
+@NoArgsConstructor
+public class CustomerInfo {
+    private Long accountNo;
     private String name;
-    private double amount;
+    private String phone_no;
+    private double balance;
+    private String code;
+
 }

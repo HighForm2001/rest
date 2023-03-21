@@ -6,5 +6,5 @@ public interface TransactionReportSumInterface {
     String getName();
     Long getAccount_No();
     LocalDate getDate();
-    Double getTotal_Amount();
+    double getTotal_Amount();
 }
