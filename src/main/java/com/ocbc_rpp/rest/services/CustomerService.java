@@ -26,12 +26,13 @@ public class CustomerService {
     private final CustomerRepository repository;
 
     private final CustomerModelAssembler assembler;
-    public CustomerService(CustomerRepository repository, CustomerModelAssembler assembler){
+
+    public CustomerService(CustomerRepository repository, CustomerModelAssembler assembler) {
         this.repository = repository;
         this.assembler = assembler;
     }
 
-    public CollectionModel<EntityModel<CustomerDto>> all(){
+    public CollectionModel<EntityModel<CustomerDto>> all() {
         List<EntityModel<CustomerDto>> customers = assembler.toDto(repository.findAll()).stream()
                 .map(assembler::toModel)
                 .toList();
@@ -40,7 +41,7 @@ public class CustomerService {
     }
 
     public EntityModel<CustomerDto> one(Long id) throws CustomerNotFoundException {
-        Customer customer = repository.findById(id).orElseThrow(()->new CustomerNotFoundException(id));
+        Customer customer = repository.findById(id).orElseThrow(() -> new CustomerNotFoundException(id));
         return assembler.toModel(customer.toDto());
     }
 
@@ -53,34 +54,34 @@ public class CustomerService {
                 .body(newCustomer);
     }
 
-    public CollectionModel<EntityModel<Customer>> all_with_transaction(){
+    public CollectionModel<EntityModel<Customer>> all_with_transaction() {
         List<EntityModel<Customer>> customer = repository
                 .findAll()
                 .stream()
                 .map(assembler::toModel)
                 .toList();
         return CollectionModel.
-                of(customer,linkTo(methodOn(CustomerController.class)
+                of(customer, linkTo(methodOn(CustomerController.class)
                         .all_with_transaction())
                         .withSelfRel());
     }
 
-    public CollectionModel<EntityModel<Customer>> did_Transaction(){
+    public CollectionModel<EntityModel<Customer>> did_Transaction() {
         List<EntityModel<Customer>> customer = repository.findAllByTransactionsMadeIsNotNull()
                 .stream().map(assembler::toModel).toList();
-        return CollectionModel.of(customer,linkTo(methodOn(CustomerController.class).did_Transaction()).withSelfRel());
+        return CollectionModel.of(customer, linkTo(methodOn(CustomerController.class).did_Transaction()).withSelfRel());
     }
 
     public CollectionModel<EntityModel<CustomerInfo>> test_case_native() {
         List<EntityModel<CustomerInfo>> info = repository.findCustomerInfoNative()
                 .stream()
                 .map(iInfo ->
-                        new CustomerInfo(iInfo.getAccount_No(), iInfo.getName(),iInfo.getPhone_No(),iInfo.getBalance(),iInfo.getCode()))
+                        new CustomerInfo(iInfo.getAccount_No(), iInfo.getName(), iInfo.getPhone_No(), iInfo.getBalance(), iInfo.getCode()))
                 .toList()
                 .stream()
                 .map(assembler::toModel)
                 .toList();
-        return CollectionModel.of(info,linkTo(methodOn(CustomerController.class).test_case_native()).withSelfRel());
+        return CollectionModel.of(info, linkTo(methodOn(CustomerController.class).test_case_native()).withSelfRel());
 
     }
 
@@ -90,14 +91,44 @@ public class CustomerService {
                 .stream()
                 .map(assembler::toModel)
                 .toList();
-        return CollectionModel.of(info,linkTo(methodOn(CustomerController.class).test_case_jpql()).withSelfRel());
+        return CollectionModel.of(info, linkTo(methodOn(CustomerController.class).test_case_jpql()).withSelfRel());
     }
 
-    public CollectionModel<EntityModel<CustomerInfo>> test_case_page(int page_size){
+    public CollectionModel<EntityModel<CustomerInfo>> test_case_page(int page_size) {
         Sort.TypedSort<CustomerInfo> sort = Sort.sort(CustomerInfo.class);
         Sort type = sort.by(CustomerInfo::getAccountNo).descending().and(sort.by(CustomerInfo::getBalance).ascending());
-        Page<CustomerInfo> page = repository.findCustomerInfoJpql(PageRequest.of(page_size,5,type));
+        Page<CustomerInfo> page = repository.findCustomerInfoJpql(PageRequest.of(page_size, 5, type));
         List<EntityModel<CustomerInfo>> info = page.getContent().stream().map(assembler::toModel).toList();
-        return CollectionModel.of(info,linkTo(methodOn(CustomerController.class).test_case_page(page_size)).withSelfRel());
+        return CollectionModel.of(info, linkTo(methodOn(CustomerController.class).test_case_page(page_size)).withSelfRel());
+    }
+
+    public CollectionModel<EntityModel<CustomerInfo>> test_case_jpa() {
+        List<CustomerInfo> info = repository.findAll()
+                .stream()
+                .map(customer -> {
+                    String code = switch (customer.getPhoneNo().substring(0, 2)) {
+                        case ("60") -> "MY";
+                        case ("61") -> "AU";
+                        case ("65") -> "SG";
+                        default -> "Other";
+                    };
+                    return new CustomerInfo(customer.getAccountNo(), customer.getName(), customer.getPhoneNo()
+                            , customer.getBalance(), code);
+                }).toList();
+        List<EntityModel<CustomerInfo>> modelInfo = info.stream().map(assembler::toModel).toList();
+        return CollectionModel.of(modelInfo, linkTo(methodOn(CustomerController.class).test_case_jpa()).withSelfRel());
+    }
+
+    public boolean checkMakeTransaction(Long id) {
+        return repository.findAll()
+            .stream()
+            .filter(s->s.getAccountNo().equals(id))
+            .map(customer -> {
+                System.out.println(customer.getTransactionsMade());
+                return !customer.getTransactionsMade().isEmpty();
+            })
+            .findAny()
+            .orElse(Boolean.FALSE);
+
     }
 }

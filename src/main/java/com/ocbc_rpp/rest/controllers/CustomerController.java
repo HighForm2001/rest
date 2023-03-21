@@ -54,4 +54,22 @@ public class CustomerController {
     public CollectionModel<EntityModel<CustomerInfo>> test_case_page(@PathVariable int page) {
         return service.test_case_page(page);
     }
+    @GetMapping("/testCaseJPA")
+    public CollectionModel<EntityModel<CustomerInfo>> test_case_jpa(){
+        return service.test_case_jpa();
+    }
+
+    // Query here! incase deleted.
+    /*
+    select case
+    when count(c.account_no)>0 then true
+    else false end
+    from customer_t c inner join
+    transaction_t t on c.account_no = t.from_acc_id
+    where c.account_no =4
+     */
+    @GetMapping("/checkMakeTransaction={id}")
+    public boolean checkMakeTransaction(@PathVariable Long id){
+        return service.checkMakeTransaction(id);
+    }
 }

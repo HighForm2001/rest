@@ -15,12 +15,12 @@ import java.time.LocalDateTime;
 public class TransactionReportSum {
     private String name;
     private Long id;
-    private LocalDate dateTime;
+    private LocalDate date;
     private double amount;
     public TransactionReportSum(String name, Long id, LocalDateTime dateTime, double amount){
         this.name = name;
         this.id = id;
-        this.dateTime = dateTime.toLocalDate();
+        this.date = dateTime.toLocalDate();
         this.amount = amount;
     }
 }

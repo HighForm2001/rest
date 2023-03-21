@@ -13,6 +13,8 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.format.DateTimeParseException;
+
 @RestController
 @RequestMapping("/api/transaction")
 public class TransactionController {
@@ -45,6 +47,12 @@ public class TransactionController {
     public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWithId(@PathVariable Long id) throws  CustomerNotFoundException{
         return service.sumTotalDateWithId(id);
     }
+
+    @GetMapping("/total/id={id}/amount={amount}")
+    public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWIthIdAndAmount(@PathVariable Long id, @PathVariable double amount){
+        return service.sumTotalDateWithIdAndAmount(id,amount);
+    }
+
     @GetMapping("/total")
     public CollectionModel<EntityModel<TransactionReportSum>> sumTotal(){
         return service.sumTotal();
@@ -84,4 +92,9 @@ public class TransactionController {
         return service.QueryTest();
     }
 
+    @GetMapping("/total/id={id}/date={date_string}")
+    public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWIthIdAndDate(@PathVariable Long id,@PathVariable String date_string)throws DateTimeParseException {
+        return service.sumTotalDateWithIdAndDate(id,date_string);
+
+    }
 }

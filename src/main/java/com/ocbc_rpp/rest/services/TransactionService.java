@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -107,6 +108,23 @@ public class    TransactionService {
         Link self = linkTo(methodOn(TransactionController.class).sumTotalDateWithId(id)).withSelfRel();
         return generate_CollectionModel(reports,self);
     }
+    public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWithIdAndAmount(Long id, double amount) {
+        List<TransactionReportSum> transactionReportSums = generateReport().stream().filter(s1->(s1.getId().equals(id) && s1.getAmount()>amount)).toList();
+        List<EntityModel<TransactionReportSum>> reports = transactionReportSums.stream().map(reportAssembler::toModel).toList();
+        Link self = linkTo(methodOn(TransactionController.class).sumTotalDateWIthIdAndAmount(id,amount)).withSelfRel();
+        return generate_CollectionModel(reports,self);
+    }
+    public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWithIdAndDate(Long id, String date_string)throws DateTimeParseException {
+        try{
+            LocalDate date = LocalDate.parse(date_string);
+            List<TransactionReportSum> transactionReportSums = generateReport().stream().filter(s1->(s1.getId().equals(id) && s1.getDate().equals(date))).toList();
+            List<EntityModel<TransactionReportSum>> reports = transactionReportSums.stream().map(reportAssembler::toModel).toList();
+            Link self = linkTo(methodOn(TransactionController.class).sumTotalDateWIthIdAndDate(id,date_string)).withSelfRel();
+            return generate_CollectionModel(reports,self);
+        }catch (DateTimeParseException ex){
+            throw new DateTimeParseException("Invalid Date entered: " + date_string,date_string,0);
+        }
+    }
 
     public CollectionModel<EntityModel<TransactionReportSum>> sumTotal(){
 
@@ -121,7 +139,7 @@ public class    TransactionService {
                 .stream()
                 .collect(Collectors
                         .groupingBy(report-> Arrays.asList(report.getCreator().getName(),report.getCreator().getAccountNo(),report.getDate()),Collectors
-                                .summingDouble(Transaction::getAmount)))
+                .summingDouble(Transaction::getAmount)))
                 .entrySet()
                 .stream()
                 .map(entry->{
@@ -129,7 +147,7 @@ public class    TransactionService {
                     t.setAmount(entry.getValue());
                     t.setName(entry.getKey().get(0).toString());
                     t.setId((Long) entry.getKey().get(1));
-                    t.setDateTime((LocalDate)entry.getKey().get(2));
+                    t.setDate((LocalDate)entry.getKey().get(2));
                     return t;    }
                 ).sorted(Comparator.comparingLong(TransactionReportSum::getId))
                 .toList();
@@ -223,4 +241,6 @@ public class    TransactionService {
         List<EntityModel<TransactionReportSum>> entityModels = report.stream().map(reportAssembler::toModel).toList();
         return CollectionModel.of(entityModels,linkTo(methodOn(TransactionController.class).QueryTest()).withSelfRel());
     }
+
+
 }
