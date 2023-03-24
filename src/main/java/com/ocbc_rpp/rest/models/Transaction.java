@@ -47,7 +47,12 @@ public class Transaction {
     }
 
     public TransactionDto toDTO(){
-        return new TransactionDto(this.getTransaction_reference(),this.amount,this.currency,this.transactionDate,this.getCreator().getAccountNo(),this.receiver.getAccountNo());
+        return new TransactionDto(
+                this.getTransaction_reference()
+                ,this.amount,this.currency
+                ,this.transactionDate
+                ,this.getCreator().getAccountNo()
+                ,this.receiver.getAccountNo());
     }
 
 

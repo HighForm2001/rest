@@ -7,6 +7,7 @@ import com.ocbc_rpp.rest.models.dto.CustomerDto;
 import com.ocbc_rpp.rest.repositories.CustomerRepository;
 import com.ocbc_rpp.rest.models.Customer;
 import com.ocbc_rpp.rest.exceptions.CustomerNotFoundException;
+import com.ocbc_rpp.rest.repositories.TransactionRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -24,12 +25,14 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Service
 public class CustomerService {
     private final CustomerRepository repository;
+    private final TransactionRepository transactionRepository;
 
     private final CustomerModelAssembler assembler;
 
-    public CustomerService(CustomerRepository repository, CustomerModelAssembler assembler) {
+    public CustomerService(CustomerRepository repository, CustomerModelAssembler assembler, TransactionRepository transactionRepository) {
         this.repository = repository;
         this.assembler = assembler;
+        this.transactionRepository = transactionRepository;
     }
 
     public CollectionModel<EntityModel<CustomerDto>> all() {
@@ -120,15 +123,6 @@ public class CustomerService {
     }
 
     public boolean checkMakeTransaction(Long id) {
-        return repository.findAll()
-            .stream()
-            .filter(s->s.getAccountNo().equals(id))
-            .map(customer -> {
-                System.out.println(customer.getTransactionsMade());
-                return !customer.getTransactionsMade().isEmpty();
-            })
-            .findAny()
-            .orElse(Boolean.FALSE);
-
+        return transactionRepository.existsTransactionByCreator_AccountNo(id);
     }
 }

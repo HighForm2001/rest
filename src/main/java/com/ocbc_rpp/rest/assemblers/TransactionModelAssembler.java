@@ -3,6 +3,7 @@ package com.ocbc_rpp.rest.assemblers;
 import com.ocbc_rpp.rest.controllers.TransactionController;
 import com.ocbc_rpp.rest.exceptions.TransactionNotFoundException;
 import com.ocbc_rpp.rest.models.Transaction;
+import com.ocbc_rpp.rest.models.TransactionStoredPro;
 import com.ocbc_rpp.rest.models.dto.TransactionDto;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.hateoas.EntityModel;
@@ -28,5 +29,10 @@ public class TransactionModelAssembler implements RepresentationModelAssembler<T
     public List<TransactionDto> toDtoList(List<Transaction> transactions){
         return transactions.stream()
                 .map(Transaction::toDTO).toList();
+    }
+
+    public List<TransactionDto> StoredtoDtoList(List<TransactionStoredPro> transactions){
+        return transactions.stream()
+                .map(TransactionStoredPro::toDto).toList();
     }
 }

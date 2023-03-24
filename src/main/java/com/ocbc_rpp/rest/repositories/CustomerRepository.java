@@ -44,7 +44,7 @@ public interface CustomerRepository extends JpaRepository<Customer,Long> {
             "case " +
             "when c.phoneNo like '60%' then 'MY'" +
             "when c.phoneNo like '61%' then 'AU'" +
-            "when c.phoneNo like '65%' then 'SG'" +
+            "when c.phoneNo like '65%' then 'SG'" + //dont use like
             "else 'Other' end) from Customer c")
     Page<CustomerInfo> findCustomerInfoJpql(Pageable pageable);
 

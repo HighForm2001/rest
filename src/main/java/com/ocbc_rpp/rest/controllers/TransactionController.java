@@ -88,13 +88,42 @@ public class TransactionController {
     }
 
     @GetMapping("/NativeQLeftJoinSum")
-    public CollectionModel<EntityModel<TransactionReportSum>> QueryTest(){
-        return service.QueryTest();
+    public CollectionModel<EntityModel<TransactionReportSum>> nativeQLeftJoinSum(){
+        return service.nativeQLeftJoinSum();
     }
 
     @GetMapping("/total/id={id}/date={date_string}")
     public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWIthIdAndDate(@PathVariable Long id,@PathVariable String date_string)throws DateTimeParseException {
-        return service.sumTotalDateWithIdAndDate(id,date_string);
+        long start = System.currentTimeMillis();
+        CollectionModel<EntityModel<TransactionReportSum>> stream =  service.sumTotalDateWithIdAndDate(id,date_string);
+        long end = System.currentTimeMillis();
+        System.out.println("Using time:" + (end-start));
 
+        return stream;
+
+    }
+
+    @GetMapping("/testStoredProcedure")
+    public CollectionModel<EntityModel<TransactionDto>> testStoredProcedure() {
+        return service.testStoredProcedure();
+    }
+
+    @GetMapping("/testStoredProcedure={id}")
+    public CollectionModel<EntityModel<TransactionDto>> testStoredProcedure2(@PathVariable Integer id) {
+        return service.testStoredProcedure2(id);
+    }
+
+    @GetMapping("/testStream/id={id}/date={date}")
+    public CollectionModel<EntityModel<TransactionReportSum>> testStream(@PathVariable Long id,@PathVariable String date) {
+        long start = System.currentTimeMillis();
+        CollectionModel<EntityModel<TransactionReportSum>> stream =  service.testStream(id,date);
+        long end = System.currentTimeMillis();
+        System.out.println("Using time:" + (end-start));
+        return stream;
+    }
+
+    @GetMapping("/testSpecification/id={id}/amount={amount}")
+    public CollectionModel<EntityModel<TransactionReportSum>> testSpecification(@PathVariable Long id,@PathVariable double amount) {
+        return service.testSpecification(id,amount);
     }
 }

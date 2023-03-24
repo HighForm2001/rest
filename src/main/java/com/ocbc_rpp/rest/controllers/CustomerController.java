@@ -59,7 +59,7 @@ public class CustomerController {
         return service.test_case_jpa();
     }
 
-    // Query here! incase deleted.
+    // Query here! in case deleted.
     /*
     select case
     when count(c.account_no)>0 then true
@@ -67,6 +67,11 @@ public class CustomerController {
     from customer_t c inner join
     transaction_t t on c.account_no = t.from_acc_id
     where c.account_no =4
+     */
+
+    /*
+    Optimized Query:
+    Select exists(select from_acc_id from transaction_t where from_acc_id = 1)
      */
     @GetMapping("/checkMakeTransaction={id}")
     public boolean checkMakeTransaction(@PathVariable Long id){

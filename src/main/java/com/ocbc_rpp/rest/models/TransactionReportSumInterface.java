@@ -4,7 +4,10 @@ import java.time.LocalDate;
 
 public interface TransactionReportSumInterface {
     String getName();
-    Long getAccount_No();
+    Long getacc();
+    // getaccount_no();
+    // getAccount_No();
+    // getId();
     LocalDate getDate();
     double getTotal_Amount();
 }
