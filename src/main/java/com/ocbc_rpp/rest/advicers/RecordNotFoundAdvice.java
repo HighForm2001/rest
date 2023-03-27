@@ -41,3 +41,4 @@ public class RecordNotFoundAdvice {
         return ex.getMessage();
     }
 }
+

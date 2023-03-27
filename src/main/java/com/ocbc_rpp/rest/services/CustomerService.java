@@ -26,17 +26,18 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class CustomerService {
     private final CustomerRepository repository;
     private final TransactionRepository transactionRepository;
-
     private final CustomerModelAssembler assembler;
 
-    public CustomerService(CustomerRepository repository, CustomerModelAssembler assembler, TransactionRepository transactionRepository) {
+    public CustomerService(CustomerRepository repository, CustomerModelAssembler assembler,
+                           TransactionRepository transactionRepository) {
         this.repository = repository;
         this.assembler = assembler;
         this.transactionRepository = transactionRepository;
     }
 
     public CollectionModel<EntityModel<CustomerDto>> all() {
-        List<EntityModel<CustomerDto>> customers = assembler.toDto(repository.findAll()).stream()
+        List<EntityModel<CustomerDto>> customers = assembler
+                .toDto(repository.findAll()).stream()
                 .map(assembler::toModel)
                 .toList();
         return CollectionModel.of(customers,

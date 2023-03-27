@@ -16,12 +16,16 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Component
-public class CustomerModelAssembler implements RepresentationModelAssembler<CustomerDto, EntityModel<CustomerDto>> {
+public class CustomerModelAssembler implements
+        RepresentationModelAssembler<CustomerDto, EntityModel<CustomerDto>> {
     @Override
     public @NotNull EntityModel<CustomerDto> toModel(@NotNull CustomerDto customer) {
         try{
-            return EntityModel.of(customer,linkTo(methodOn(CustomerController.class).one(customer.getAccountNo())).withSelfRel(),
-                    linkTo(methodOn(CustomerController.class).all()).withRel("/api/customers"));
+            return EntityModel.
+                    of(customer,linkTo(methodOn(CustomerController.class)
+                                    .one(customer.getAccountNo())).withSelfRel(),
+                    linkTo(methodOn(CustomerController.class)
+                            .all()).withRel("/api/customers"));
         }catch (CustomerNotFoundException e){
             throw new RuntimeException(e);
         }
@@ -29,8 +33,11 @@ public class CustomerModelAssembler implements RepresentationModelAssembler<Cust
 
     public EntityModel<Customer> toModel(Customer customer) {
         try{
-            return EntityModel.of(customer,linkTo(methodOn(CustomerController.class).one(customer.getAccountNo())).withSelfRel(),
-                    linkTo(methodOn(CustomerController.class).all()).withRel("/api/customers"));
+            return EntityModel.of(customer,
+                    linkTo(methodOn(CustomerController.class)
+                            .one(customer.getAccountNo())).withSelfRel(),
+                    linkTo(methodOn(CustomerController.class)
+                            .all()).withRel("/api/customers"));
         }catch (CustomerNotFoundException e){
             throw new RuntimeException(e);
         }
@@ -38,9 +45,13 @@ public class CustomerModelAssembler implements RepresentationModelAssembler<Cust
 
     public EntityModel<CustomerInfo> toModel(CustomerInfo customer){
         try{
-            return EntityModel.of(customer,linkTo(methodOn(CustomerController.class).one(customer.getAccountNo())).withSelfRel(),
-                    linkTo(methodOn(CustomerController.class).test_case_native()).withRel("/api/customers/testCaseNative"),
-                    linkTo(methodOn(CustomerController.class).test_case_jpql()).withRel("/api/customers/testCaseJPQL"));
+            return EntityModel.of(customer,
+                    linkTo(methodOn(CustomerController.class)
+                            .one(customer.getAccountNo())).withSelfRel(),
+                    linkTo(methodOn(CustomerController.class)
+                            .test_case_native()).withRel("/api/customers/testCaseNative"),
+                    linkTo(methodOn(CustomerController.class)
+                            .test_case_jpql()).withRel("/api/customers/testCaseJPQL"));
         }catch(Exception e){
             throw new RuntimeException(e);
         }

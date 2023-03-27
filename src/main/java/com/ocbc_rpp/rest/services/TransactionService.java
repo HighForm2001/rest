@@ -45,7 +45,10 @@ public class    TransactionService {
     private final TransactionReportModelAssembler reportAssembler;
 
     private final TransactionGroup group;
-    public TransactionService(TransactionRepository repo, CustomerRepository cusRepo, TransactionModelAssembler assembler, TransactionReportModelAssembler reportAssembler,TransactionGroup group){
+    public TransactionService(TransactionRepository repo, CustomerRepository cusRepo,
+                              TransactionModelAssembler assembler,
+                              TransactionReportModelAssembler reportAssembler,
+                              TransactionGroup group){
 
         this.transactionRepository = repo;
         this.customerRepository = cusRepo;
@@ -54,7 +57,8 @@ public class    TransactionService {
         this.group = group;
     }
 
-    public ResponseEntity<?> newTransaction(TransactionCreateRequest transaction) throws CustomerNotFoundException {
+    public ResponseEntity<?> newTransaction(TransactionCreateRequest transaction)
+            throws CustomerNotFoundException {
 
         // assume both customer is valid (add validation on Customer Controller)
         Customer from = customerRepository.findById(transaction.getFrom_acc())

@@ -7,7 +7,6 @@ import com.ocbc_rpp.rest.models.TransactionReportSum;
 import com.ocbc_rpp.rest.models.dto.TransactionDto;
 import com.ocbc_rpp.rest.models.request.TransactionCreateRequest;
 import com.ocbc_rpp.rest.services.TransactionService;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +23,8 @@ public class TransactionController {
     }
 
     @PostMapping
-    public ResponseEntity<?> newTransaction(@RequestBody @NotNull TransactionCreateRequest transaction) throws CustomerNotFoundException {
+    public ResponseEntity<?> newTransaction(@RequestBody TransactionCreateRequest transaction)
+            throws CustomerNotFoundException {
         return service.newTransaction(transaction);
     }
 

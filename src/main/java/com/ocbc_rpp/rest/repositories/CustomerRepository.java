@@ -15,8 +15,6 @@ import java.util.List;
 public interface CustomerRepository extends JpaRepository<Customer,Long> {
     List<Customer> findAllByTransactionsMadeIsNotNull();
 
-//    List<Customer> findAllByTransactionsMadeNotInOrTransactionsMadeIsNull(List<Transaction> tran1, List<Transaction> tran2);
-
     @Query(value = "SELECT c.name, c.account_no, c.phone_no, c.balance, case " +
             "when (c.phone_no like '60%') then 'MY' " +
             "when (c.phone_no like '65%') then 'SG' " +
@@ -30,9 +28,9 @@ public interface CustomerRepository extends JpaRepository<Customer,Long> {
             "c.phoneNo," +
             "c.balance," +
             "case " +
-            "when c.phoneNo like '60%' then 'MY'" +
-            "when c.phoneNo like '61%' then 'AU'" +
-            "when c.phoneNo like '65%' then 'SG'" +
+            "when substring(c.phoneNo,1,2) = '60' then 'MY'" +
+            "when substring(c.phoneNo,1,2) = '61' then 'AU'" +
+            "when substring(c.phoneNo,1,2) = '65' then 'SG'" +
             "else 'Other' end) from Customer c")
     List<CustomerInfo> findCustomerInfoJpql();
 
@@ -42,11 +40,10 @@ public interface CustomerRepository extends JpaRepository<Customer,Long> {
             "c.phoneNo," +
             "c.balance," +
             "case " +
-            "when c.phoneNo like '60%' then 'MY'" +
-            "when c.phoneNo like '61%' then 'AU'" +
-            "when c.phoneNo like '65%' then 'SG'" + //dont use like
+            "when substring(c.phoneNo,1,2) = '60' then 'MY'" +
+            "when substring(c.phoneNo,1,2) = '61' then 'AU'" +
+            "when substring(c.phoneNo,1,2) = '65' then 'SG'" + //dont use like
             "else 'Other' end) from Customer c")
     Page<CustomerInfo> findCustomerInfoJpql(Pageable pageable);
 
-//    List<Customer> findAllByTransactionsMadeInOrNotIn(List<Transaction> transactions);
 }

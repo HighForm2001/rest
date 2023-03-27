@@ -16,12 +16,16 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Component
-public class TransactionModelAssembler implements RepresentationModelAssembler<TransactionDto, EntityModel<TransactionDto>> {
+public class TransactionModelAssembler implements
+        RepresentationModelAssembler<TransactionDto, EntityModel<TransactionDto>> {
     @Override
     public @NotNull EntityModel<TransactionDto> toModel(@NotNull TransactionDto transaction) {
         try {
-            return EntityModel.of(transaction,linkTo(methodOn(TransactionController.class).one(transaction.getTransactionReference())).withSelfRel(),
-                    linkTo(methodOn(TransactionController.class).all()).withRel("api/transaction"));
+            return EntityModel.of(transaction,
+                    linkTo(methodOn(TransactionController.class)
+                            .one(transaction.getTransactionReference())).withSelfRel(),
+                    linkTo(methodOn(TransactionController.class)
+                            .all()).withRel("api/transaction"));
         } catch (TransactionNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -31,8 +35,6 @@ public class TransactionModelAssembler implements RepresentationModelAssembler<T
                 .map(Transaction::toDTO).toList();
     }
 
-    public List<TransactionDto> StoredtoDtoList(List<TransactionStoredPro> transactions){
-        return transactions.stream()
-                .map(TransactionStoredPro::toDto).toList();
-    }
 }
+
+
