@@ -16,9 +16,9 @@ public interface CustomerRepository extends JpaRepository<Customer,Long> {
     List<Customer> findAllByTransactionsMadeIsNotNull();
 
     @Query(value = "SELECT c.name, c.account_no, c.phone_no, c.balance, case " +
-            "when (c.phone_no like '60%') then 'MY' " +
-            "when (c.phone_no like '65%') then 'SG' " +
-            "when (c.phone_no like '61%') then 'AU' " +
+            "when (substring(c.phone_no,1,2) = '60') then 'MY' " +
+            "when (substring(c.phone_no,1,2) = '65') then 'SG' " +
+            "when (substring(c.phone_no,1,2) = '61') then 'AU' " +
             "else 'Other' end as Code from customer_t c", nativeQuery = true)
     List<CustomerInfoInterface> findCustomerInfoNative();
 

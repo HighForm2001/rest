@@ -3,7 +3,6 @@ package com.ocbc_rpp.rest.repositories;
 import com.ocbc_rpp.rest.models.Customer;
 import com.ocbc_rpp.rest.models.Transaction;
 import com.ocbc_rpp.rest.models.TransactionReportSum;
-import com.ocbc_rpp.rest.models.TransactionReportSumInterface;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Stream;
 
 @Repository
 public interface TransactionRepository extends
@@ -32,15 +30,16 @@ public interface TransactionRepository extends
     //      exact name of the query. FOr example, getAccount_No to get c.account_no
     //      getTotal_Amount to get total_amount.
     //      if the get method is not same wit the name in the query, it will return null.
-    @Query(value = "SELECT c.name, c.account_no as acc, DATE(t.transaction_date)" +
-            ", COALESCE(SUM(t.amount),0) as total_amount FROM customer_t c" +
-            " left join transaction_t t on c.account_no = t.from_acc_id Group by" +
-            " c.account_no, c.name, Date(t.transaction_date) Order by c.account_no",nativeQuery = true)
-    List<TransactionReportSumInterface> findGroupByReportWithNativeQuery();
+//    @Query(value = "SELECT c.name, c.account_no as acc, DATE(t.transaction_date)" +
+//            ", COALESCE(SUM(t.amount),0) as total_amount FROM customer_t c" +
+//            " left join transaction_t t on c.account_no = t.from_acc_id Group by" +
+//            " c.account_no, c.name, Date(t.transaction_date) Order by c.account_no",nativeQuery = true)
+//    List<TransactionReportSumInterface> findGroupByReportWithNativeQuery();
 
-    List<Transaction> findByCreatorAndReceiverNot(Customer receiver, Customer creator);
+    List<Transaction> findByCreatorAndReceiverNot(Customer creator, Customer receiver);
 
     Slice<Transaction> findByCreator_Name(String name, Pageable page);
+//    Page<Transaction> findByCreator_Name(String name, Pageable page);
 
     List<Transaction> findAllByCreator_AccountNoAndAmountGreaterThanEqual(Long id, Double amount);
 
@@ -48,17 +47,12 @@ public interface TransactionRepository extends
 
     List<Transaction>findAllByCreator_AccountNoAndTransactionDateBetween(Long id, LocalDateTime start,LocalDateTime end);
 
-    Stream<Transaction> findAllByCreator_AccountNoAndTransactionDateAfter(Long id, LocalDateTime date);
-
     boolean existsTransactionByCreator_AccountNo(Long id);
 
     @Procedure
-    List<Transaction> my_function(); // procedure require call procedure, you missing call?
-
-
+    List<Transaction> my_function();
 
     @Procedure
     List<Transaction> test_function3(Integer id);
-
 
 }

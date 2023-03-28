@@ -18,8 +18,6 @@ public class TransactionGroup {
     @Autowired
     EntityManagerFactory entityManagerFactory;
 
-
-
     public List<TransactionReportSum> groupByFilterIdAndAmount(Long id, double amount){
         EntityManager em = entityManagerFactory.createEntityManager();
         em.getTransaction().begin();
@@ -35,12 +33,14 @@ public class TransactionGroup {
         groupByList.add(root.get("creator").get("name"));
         groupByList.add(root.get("creator").get("accountNo"));
         groupByList.add(cb.function("date",LocalDate.class,root.get("transactionDate")));
+
         Predicate equalAccount = cb.equal(root.get("creator").get("accountNo"),id);
         Predicate amountGreater = cb.greaterThanOrEqualTo(root.get("amount"),amount);
         query.multiselect(selectList).groupBy(groupByList).where(cb.and(equalAccount,amountGreater));
         List<Object[]> list = em.createQuery(query).getResultList();
         return objectToReport(list);
     }
+
     private List<TransactionReportSum> objectToReport(List<Object[]> list){
         return list.stream().map(objects -> {
             TransactionReportSum report = new TransactionReportSum();
@@ -51,4 +51,5 @@ public class TransactionGroup {
             return report;
         }).toList();
     }
+
 }

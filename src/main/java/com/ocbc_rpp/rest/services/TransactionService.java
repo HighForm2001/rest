@@ -24,14 +24,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -55,6 +53,30 @@ public class    TransactionService {
         this.assembler = assembler;
         this.reportAssembler = reportAssembler;
         this.group = group;
+    }
+
+    public CollectionModel<EntityModel<TransactionDto>> all(){
+
+        List<EntityModel<TransactionDto>> transactions = assembler
+                .toDtoList(transactionRepository.findAll())
+                .stream()
+                .map(assembler::toModel)
+                .toList();
+
+        return CollectionModel.
+                of(transactions,
+                        linkTo(methodOn(TransactionController.class)
+                                .all())
+                                .withSelfRel());
+    }
+
+
+
+    public EntityModel<TransactionDto> one(Long id) throws TransactionNotFoundException {
+        Transaction transaction = transactionRepository
+                .findById(id)
+                .orElseThrow(()-> new TransactionNotFoundException(id));
+        return assembler.toModel(transaction.toDTO());
     }
 
     public ResponseEntity<?> newTransaction(TransactionCreateRequest transaction)
@@ -89,103 +111,29 @@ public class    TransactionService {
                         .toUri()).body(newTransactionModel);
 
     }
-    public CollectionModel<EntityModel<TransactionDto>> all(){
-
-        List<EntityModel<TransactionDto>> transactions = assembler.toDtoList(transactionRepository.findAll())
-                .stream()
-                .map(assembler::toModel)
-                .toList();
-
-        return CollectionModel.
-                of(transactions,
-                        linkTo(methodOn(TransactionController.class)
-                                .all())
-                                .withSelfRel());
-    }
 
 
-
-    public EntityModel<TransactionDto> one(Long id) throws TransactionNotFoundException {
-        Transaction transaction = transactionRepository
-                .findById(id)
-                .orElseThrow(()-> new TransactionNotFoundException(id));
-        return assembler.toModel(transaction.toDTO());
-    }
-
-
-
-
-    public CollectionModel<EntityModel<TransactionDto>> findTransactionWithout(Long id, Long id2) throws  CustomerNotFoundException{
+    public CollectionModel<EntityModel<TransactionDto>> findTransactionWithout(Long id, Long id2)
+            throws  CustomerNotFoundException{
         Customer creator = customerRepository.findById(id).orElseThrow(()->new CustomerNotFoundException(id));
         Customer receiver = customerRepository.findById(id2).orElseThrow(()-> new CustomerNotFoundException(id2));
-        List<EntityModel<TransactionDto>> transactions = assembler.toDtoList(transactionRepository.findByCreatorAndReceiverNot(creator,receiver))
+        List<EntityModel<TransactionDto>> transactions = assembler
+                .toDtoList(transactionRepository.findByCreatorAndReceiverNot(creator,receiver))
                 .stream()
                 .filter(s-> !s.getCreatorID().equals(id2))
                 .map(assembler::toModel)
                 .toList();
-        return CollectionModel.of(transactions,linkTo(methodOn(TransactionController.class).findTransactionWithout(id,id2)).withSelfRel());
-    }
-
-    public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWithId(Long id) throws  CustomerNotFoundException{
-        Predicate<Transaction> filter = transaction -> transaction.getCreator().getAccountNo().equals(id);
-//        List<TransactionReportSum> transactionReportSums = generateReport().stream().filter(s1->s1.getId().equals(id)).toList();
-        List<EntityModel<TransactionReportSum>> reports = generateReport(id).stream().map(reportAssembler::toModel).toList();
-        Link self = linkTo(methodOn(TransactionController.class).sumTotalDateWithId(id)).withSelfRel();
-        return generate_CollectionModel(reports,self);
-    }
-    public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWithIdAndAmount(Long id, double amount) {
-//        List<TransactionReportSum> transactionReportSums = generateReport().stream().filter(s1->(s1.getId().equals(id) && s1.getAmount()>amount)).toList();
-        List<TransactionReportSum> transactionReportSums = generateReport(id);
-        List<EntityModel<TransactionReportSum>> reports = transactionReportSums.stream().map(reportAssembler::toModel).toList();
-        Link self = linkTo(methodOn(TransactionController.class).sumTotalDateWIthIdAndAmount(id,amount)).withSelfRel();
-        return generate_CollectionModel(reports,self);
-    }
-    public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWithIdAndDate(Long id, String date_string)throws DateTimeParseException {
-        try{
-            LocalDate date = LocalDate.parse(date_string);
-            Predicate<Transaction> filter = transaction -> transaction.getDate().equals(date) && transaction.getCreator().getAccountNo().equals(id);
-//            List<TransactionReportSum> transactionReportSums = generateReport().stream().filter(s1->(s1.getId().equals(id) && s1.getDate().equals(date))).toList();
-            List<TransactionReportSum> transactionReportSums = generateReport(id, date);
-            List<EntityModel<TransactionReportSum>> reports = transactionReportSums.stream().map(reportAssembler::toModel).toList();
-            Link self = linkTo(methodOn(TransactionController.class).sumTotalDateWIthIdAndDate(id,date_string)).withSelfRel();
-            return generate_CollectionModel(reports,self);
-        }catch (DateTimeParseException ex){
-            throw new DateTimeParseException("Invalid Date entered: " + date_string,date_string,0);
-        }
-    }
-
-
-    public List<EntityModel<TransactionReportSum>> toReport(List<Transaction> list){
-        return list.stream()
-                .collect(Collectors.groupingBy(report-> Arrays.asList(report.getCreator().getName(),report.getCreator().getAccountNo(),report.getDate()),Collectors
-                        .summingDouble(Transaction::getAmount)))
-                .entrySet()
-                .stream()
-                .map(entry->{
-                    return new TransactionReportSum(entry.getKey().get(0).toString(),
-                            (Long)entry.getKey().get(1),
-                            (LocalDate) entry.getKey().get(2),
-                            entry.getValue());}
-                ).toList()
-                .stream()
-                .map(reportAssembler::toModel)
-                .toList();
-    }
-
-    public CollectionModel<EntityModel<TransactionReportSum>> sumTotal(){
-
-        List<TransactionReportSum> transactionReportSums = generateReport();
-        List<EntityModel<TransactionReportSum>> reports = transactionReportSums.stream().map(reportAssembler::toModel).toList();
-        Link self = linkTo(methodOn(TransactionController.class).sumTotal()).withSelfRel();
-        return generate_CollectionModel(reports,self);
+        return CollectionModel.of(transactions,linkTo(methodOn(TransactionController.class)
+                .findTransactionWithout(id,id2)).withSelfRel());
     }
 
     private List<TransactionReportSum> generateReport(){
         return transactionRepository.findAll()
                 .stream()
                 .collect(Collectors
-                        .groupingBy(report-> Arrays.asList(report.getCreator().getName(),report.getCreator().getAccountNo(),report.getDate()),Collectors
-                .summingDouble(Transaction::getAmount)))
+                        .groupingBy(report-> Arrays.asList(report.getCreator().getName()
+                                ,report.getCreator().getAccountNo(),report.getDate()),Collectors
+                                .summingDouble(Transaction::getAmount)))
                 .entrySet()
                 .stream()
                 .map(entry->{
@@ -238,7 +186,8 @@ public class    TransactionService {
         return transactionRepository.findAllByCreator_AccountNoAndAmountGreaterThanEqual(id,amount)
                 .stream()
                 .collect(Collectors
-                        .groupingBy(report-> Arrays.asList(report.getCreator().getName(),report.getCreator().getAccountNo(),report.getDate()),Collectors
+                        .groupingBy(report-> Arrays.asList(report.getCreator().getName()
+                                ,report.getCreator().getAccountNo(),report.getDate()),Collectors
                                 .summingDouble(Transaction::getAmount)))
                 .entrySet()
                 .stream()
@@ -253,60 +202,48 @@ public class    TransactionService {
                 .toList();
     }
 
-    public CollectionModel<EntityModel<TransactionDto>> pageAndSort(int page) throws NoSuchPageException {
+    public CollectionModel<EntityModel<TransactionReportSum>> sumTotal(){
 
-        Sort.TypedSort<Transaction> type = Sort.sort(Transaction.class);
-        Sort sort = type.by(Transaction::getAmount).ascending();
-        Page<Transaction> all = transactionRepository.findAll(PageRequest.of(page,5,sort));
-        List<EntityModel<TransactionDto>> transactions = assembler.toDtoList(all.getContent())
+        List<TransactionReportSum> transactionReportSums = generateReport();
+        List<EntityModel<TransactionReportSum>> reports = transactionReportSums.stream().map(reportAssembler::toModel).toList();
+        Link self = linkTo(methodOn(TransactionController.class).sumTotal()).withSelfRel();
+        return generate_CollectionModel(reports,self);
+    }
+
+
+    public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWithId(Long id) throws  CustomerNotFoundException{
+        List<EntityModel<TransactionReportSum>> reports = generateReport(id).stream().map(reportAssembler::toModel).toList();
+        Link self = linkTo(methodOn(TransactionController.class).sumTotalDateWithId(id)).withSelfRel();
+        return generate_CollectionModel(reports,self);
+    }
+    public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWithIdAndAmount(Long id, double amount) {
+//        List<TransactionReportSum> transactionReportSums = generateReport().stream().filter(s1->(s1.getId().equals(id) && s1.getAmount()>amount)).toList();
+        List<TransactionReportSum> transactionReportSums = generateReport(id,amount);
+        List<EntityModel<TransactionReportSum>> reports = transactionReportSums.stream().map(reportAssembler::toModel).toList();
+        Link self = linkTo(methodOn(TransactionController.class).sumTotalDateWIthIdAndAmount(id,amount)).withSelfRel();
+        return generate_CollectionModel(reports,self);
+    }
+    public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWithIdAndDate(Long id, String date_string)throws DateTimeParseException {
+        try{
+            LocalDate date = LocalDate.parse(date_string);
+            List<TransactionReportSum> transactionReportSums = generateReport(id, date);
+            List<EntityModel<TransactionReportSum>> reports = transactionReportSums.stream().map(reportAssembler::toModel).toList();
+            Link self = linkTo(methodOn(TransactionController.class).sumTotalDateWIthIdAndDate(id,date_string)).withSelfRel();
+            return generate_CollectionModel(reports,self);
+        }catch (DateTimeParseException ex){
+            throw new DateTimeParseException("Invalid Date entered: " + date_string,date_string,0);
+        }
+    }
+
+    public CollectionModel<EntityModel<TransactionReportSum>>
+    testSpecification(Long id, double amount){
+        List<TransactionReportSum> reportSums = group.groupByFilterIdAndAmount(id,amount);
+        List<EntityModel<TransactionReportSum>> model = reportSums
                 .stream()
-                .map(assembler::toModel)
-                .toList();
-
-        return CollectionModel.
-                of(transactions,
-                        linkTo(methodOn(TransactionController.class)
-                                .pageAndSort(page))
-                                .withSelfRel());
-    }
-
-    public CollectionModel<EntityModel<TransactionDto>> pageAndSortMultiple(int page) throws NoSuchPageException {
-        Sort.TypedSort<Transaction> type = Sort.sort(Transaction.class);
-        Sort sort = type.by(Transaction::getAmount).ascending().and(type.by(Transaction::getTransactionDate).descending());
-        Page<Transaction> all = transactionRepository.findAll(PageRequest.of(page,3,sort));
-        List<EntityModel<TransactionDto>> transactions = assembler.toDtoList(all.getContent())
-                .stream()
-                .map(assembler::toModel)
-                .toList();
-
-        return CollectionModel.
-                of(transactions,
-                        linkTo(methodOn(TransactionController.class)
-                                .pageAndSortMultiple(page))
-                                .withSelfRel());
-    }
-
-
-    public CollectionModel<EntityModel<TransactionReportSum>> JpqlTest() {
-        List<TransactionReportSum> report = transactionRepository.groupAndSumJpql();
-        List<EntityModel<TransactionReportSum>> reportEntity = report.stream().map(reportAssembler::toModel).toList();
-        return CollectionModel.of(reportEntity,linkTo(methodOn(TransactionController.class).JpqlTest()).withSelfRel());
-    }
-
-    public CollectionModel<EntityModel<TransactionDto>> pageSlice(String name,int page) throws NoSuchPageException {
-        Pageable paging = PageRequest.of(page,2);
-        Slice<Transaction> slice = transactionRepository.findByCreator_Name(name,paging);
-        List<EntityModel<TransactionDto>> list = assembler.toDtoList(slice.getContent()).stream().map(assembler::toModel).toList();
-        return CollectionModel.of(list,linkTo(methodOn(TransactionController.class).pageSlice(page,name)).withSelfRel());
-    }
-
-    public CollectionModel<EntityModel<TransactionReportSum>> nativeQLeftJoinSum() {
-        List<TransactionReportSum> report= transactionRepository.findGroupByReportWithNativeQuery()
-                .stream()
-                .map(iReport-> new TransactionReportSum(iReport.getName(),iReport.getacc(),iReport.getDate(),iReport.getTotal_Amount()))
-                .toList();
-        List<EntityModel<TransactionReportSum>> entityModels = report.stream().map(reportAssembler::toModel).toList();
-        return CollectionModel.of(entityModels,linkTo(methodOn(TransactionController.class).nativeQLeftJoinSum()).withSelfRel());
+                .map(reportAssembler::toModel).toList();
+        Link self = linkTo(methodOn(TransactionController.class)
+                .testSpecification(id,amount)).withSelfRel();
+        return generate_CollectionModel(model,self);
     }
 
     @Transactional(readOnly = true)
@@ -333,44 +270,73 @@ public class    TransactionService {
 //        return  null;
     }
 
-    @Transactional
-    public CollectionModel<EntityModel<TransactionReportSum>> testStream(Long id, String date_string){
-        try{
-            LocalDateTime date = LocalDate.parse(date_string).atStartOfDay();
-            List<EntityModel<TransactionReportSum>> stream = transactionRepository
-                    .findAllByCreator_AccountNoAndTransactionDateAfter(id,date)
-                    .collect(Collectors
-                            .groupingBy(report-> Arrays.asList(report.getCreator().getName(),report.getCreator().getAccountNo(),report.getDate()),Collectors
-                                .summingDouble(Transaction::getAmount)))
-                    .entrySet()
-                    .stream()
-                    .map(entry->{
-                        TransactionReportSum t = new TransactionReportSum();
-                        t.setAmount(entry.getValue());
-                        t.setName(entry.getKey().get(0).toString());
-                        t.setId((Long) entry.getKey().get(1));
-                        t.setDate((LocalDate)entry.getKey().get(2));
-                        return t;})
-                    .sorted((s1,s2)-> (int) (s1.getAmount()-s2.getAmount()))
-                    .toList()
-                    .stream().map(reportAssembler::toModel)
-                    .toList();
-            return CollectionModel.of(stream,linkTo(methodOn(TransactionController.class).testStream(id, date_string)).withSelfRel());
-
-        }catch(DateTimeParseException ex){
-            throw new DateTimeParseException("Date format invalid: " + date_string,date_string,0);
-        }
-
-
+    public CollectionModel<EntityModel<TransactionDto>>
+    pageAndSort(int page) throws NoSuchPageException {
+        Sort.TypedSort<Transaction> type = Sort.sort(Transaction.class);
+        Sort sort = type.by(Transaction::getAmount).ascending();
+        Page<Transaction> all = transactionRepository.findAll(PageRequest.of(page,5,sort));
+        List<EntityModel<TransactionDto>> transactions = assembler
+                .toDtoList(all.getContent())
+                .stream()
+                .map(assembler::toModel)
+                .toList();
+        return CollectionModel.
+                of(transactions,
+                        linkTo(methodOn(TransactionController.class)
+                                .pageAndSort(page))
+                                .withSelfRel());
     }
 
-    public CollectionModel<EntityModel<TransactionReportSum>> testSpecification(Long id, double amount){
-        List<TransactionReportSum> reportSums = group.groupByFilterIdAndAmount(id,amount);
-        List<EntityModel<TransactionReportSum>> model = reportSums.stream().map(reportAssembler::toModel).toList();
-        Link self = linkTo(methodOn(TransactionController.class).testSpecification(id,amount)).withSelfRel();
-        return generate_CollectionModel(model,self);
+    public CollectionModel<EntityModel<TransactionDto>>
+    pageAndSortMultiple(int page) throws NoSuchPageException {
+        Sort.TypedSort<Transaction> type = Sort.sort(Transaction.class);
+        Sort sort = type.by(Transaction::getAmount).ascending()
+                .and(type.by(Transaction::getTransactionDate).descending());
+        Page<Transaction> all = transactionRepository.findAll(PageRequest.of(page,3,sort));
+        List<EntityModel<TransactionDto>> transactions = assembler
+                .toDtoList(all.getContent())
+                .stream()
+                .map(assembler::toModel)
+                .toList();
+        return CollectionModel.
+                of(transactions,
+                        linkTo(methodOn(TransactionController.class)
+                                .pageAndSortMultiple(page))
+                                .withSelfRel());
     }
 
+    public CollectionModel<EntityModel<TransactionDto>>
+    pageSlice(String name,int page) throws NoSuchPageException {
+        Pageable paging = PageRequest.of(page,2);
+        Slice<Transaction> slice = transactionRepository.findByCreator_Name(name,paging);
+        List<EntityModel<TransactionDto>> list = assembler
+                .toDtoList(slice.getContent())
+                .stream()
+                .map(assembler::toModel)
+                .toList();
+        return CollectionModel.of(list,
+                linkTo(methodOn(TransactionController.class).pageSlice(page,name)).withSelfRel());
+    }
+
+//    public CollectionModel<EntityModel<TransactionReportSum>> JpqlTest() {
+//        List<TransactionReportSum> report = transactionRepository.groupAndSumJpql();
+//        List<EntityModel<TransactionReportSum>> reportEntity = report.stream().map(reportAssembler::toModel).toList();
+//        return CollectionModel.of(reportEntity,linkTo(methodOn(TransactionController.class).JpqlTest()).withSelfRel());
+//    }
+//
+//
+//
+//    public CollectionModel<EntityModel<TransactionReportSum>> nativeQLeftJoinSum() {
+//        List<TransactionReportSum> report= transactionRepository
+//                .findGroupByReportWithNativeQuery()
+//                .stream()
+//                .map(iReport-> new TransactionReportSum(iReport.getName(),
+//                        iReport.getacc(),iReport.getDate(),iReport.getTotal_Amount()))
+//                .toList();
+//        List<EntityModel<TransactionReportSum>> entityModels = report.stream().map(reportAssembler::toModel).toList();
+//        return CollectionModel.of(entityModels
+//                ,linkTo(methodOn(TransactionController.class).nativeQLeftJoinSum()).withSelfRel());
+//    }
 
     private <T> CollectionModel<EntityModel<T>> generate_CollectionModel(List<EntityModel<T>> list, Link selfLink){
         Link link1 = linkTo(methodOn(TransactionController.class).all()).withRel("api/transaction");

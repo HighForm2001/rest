@@ -24,17 +24,16 @@ public class Customer {
     private String phoneNo; //phone_no
     private double balance;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "creator")
-    private List<Transaction> transactionsMade;
+    @OneToMany(cascade = CascadeType.ALL,
+            mappedBy = "creator")
+    private List<Transaction>
+            transactionsMade;
 
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "receiver")
-    private List<Transaction> transactionsReceive;
+    @OneToMany(cascade = CascadeType.ALL,
+            mappedBy = "receiver")
+    private List<Transaction>
+            transactionsReceive;
 
-//    @ManyToMany
-//    @JoinTable(name = "transaction_customer_tb",
-//    joinColumns = {@JoinColumn(name = "t_id")},
-//    inverseJoinColumns = {@JoinColumn(name = "c_id")})
-//
 
     public CustomerDto toDto(){
         return new CustomerDto(this.accountNo,this.name,this.phoneNo,this.balance);
