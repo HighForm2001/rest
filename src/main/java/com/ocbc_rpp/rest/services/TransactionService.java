@@ -220,7 +220,7 @@ public class    TransactionService {
 //        List<TransactionReportSum> transactionReportSums = generateReport().stream().filter(s1->(s1.getId().equals(id) && s1.getAmount()>amount)).toList();
         List<TransactionReportSum> transactionReportSums = generateReport(id,amount);
         List<EntityModel<TransactionReportSum>> reports = transactionReportSums.stream().map(reportAssembler::toModel).toList();
-        Link self = linkTo(methodOn(TransactionController.class).sumTotalDateWIthIdAndAmount(id,amount)).withSelfRel();
+        Link self = linkTo(methodOn(TransactionController.class).sumTotalDateWithIdAndAmount(id,amount)).withSelfRel();
         return generate_CollectionModel(reports,self);
     }
     public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWithIdAndDate(Long id, String date_string)throws DateTimeParseException {
@@ -228,7 +228,7 @@ public class    TransactionService {
             LocalDate date = LocalDate.parse(date_string);
             List<TransactionReportSum> transactionReportSums = generateReport(id, date);
             List<EntityModel<TransactionReportSum>> reports = transactionReportSums.stream().map(reportAssembler::toModel).toList();
-            Link self = linkTo(methodOn(TransactionController.class).sumTotalDateWIthIdAndDate(id,date_string)).withSelfRel();
+            Link self = linkTo(methodOn(TransactionController.class).sumTotalDateWithIdAndDate(id,date_string)).withSelfRel();
             return generate_CollectionModel(reports,self);
         }catch (DateTimeParseException ex){
             throw new DateTimeParseException("Invalid Date entered: " + date_string,date_string,0);
@@ -244,6 +244,24 @@ public class    TransactionService {
         Link self = linkTo(methodOn(TransactionController.class)
                 .testSpecification(id,amount)).withSelfRel();
         return generate_CollectionModel(model,self);
+    }
+
+    public CollectionModel<EntityModel<TransactionReportSum>> JpqlTest() {
+        List<TransactionReportSum> report = transactionRepository.groupAndSumJpql();
+        List<EntityModel<TransactionReportSum>> reportEntity = report.stream().map(reportAssembler::toModel).toList();
+        return CollectionModel.of(reportEntity,linkTo(methodOn(TransactionController.class).jpqlTest()).withSelfRel());
+    }
+
+    public CollectionModel<EntityModel<TransactionReportSum>> nativeQLeftJoinSum() {
+        List<TransactionReportSum> report= transactionRepository
+                .findGroupByReportWithNativeQuery()
+                .stream()
+                .map(iReport-> new TransactionReportSum(iReport.getName(),
+                        iReport.getacc(),iReport.getDate(),iReport.getTotal_Amount()))
+                .toList();
+        List<EntityModel<TransactionReportSum>> entityModels = report.stream().map(reportAssembler::toModel).toList();
+        return CollectionModel.of(entityModels
+                ,linkTo(methodOn(TransactionController.class).nativeQLeftJoinSum()).withSelfRel());
     }
 
     @Transactional(readOnly = true)
@@ -318,25 +336,11 @@ public class    TransactionService {
                 linkTo(methodOn(TransactionController.class).pageSlice(page,name)).withSelfRel());
     }
 
-//    public CollectionModel<EntityModel<TransactionReportSum>> JpqlTest() {
-//        List<TransactionReportSum> report = transactionRepository.groupAndSumJpql();
-//        List<EntityModel<TransactionReportSum>> reportEntity = report.stream().map(reportAssembler::toModel).toList();
-//        return CollectionModel.of(reportEntity,linkTo(methodOn(TransactionController.class).JpqlTest()).withSelfRel());
-//    }
+
 //
 //
 //
-//    public CollectionModel<EntityModel<TransactionReportSum>> nativeQLeftJoinSum() {
-//        List<TransactionReportSum> report= transactionRepository
-//                .findGroupByReportWithNativeQuery()
-//                .stream()
-//                .map(iReport-> new TransactionReportSum(iReport.getName(),
-//                        iReport.getacc(),iReport.getDate(),iReport.getTotal_Amount()))
-//                .toList();
-//        List<EntityModel<TransactionReportSum>> entityModels = report.stream().map(reportAssembler::toModel).toList();
-//        return CollectionModel.of(entityModels
-//                ,linkTo(methodOn(TransactionController.class).nativeQLeftJoinSum()).withSelfRel());
-//    }
+
 
     private <T> CollectionModel<EntityModel<T>> generate_CollectionModel(List<EntityModel<T>> list, Link selfLink){
         Link link1 = linkTo(methodOn(TransactionController.class).all()).withRel("api/transaction");

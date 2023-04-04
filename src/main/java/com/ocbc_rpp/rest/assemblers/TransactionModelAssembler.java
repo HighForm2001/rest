@@ -3,7 +3,6 @@ package com.ocbc_rpp.rest.assemblers;
 import com.ocbc_rpp.rest.controllers.TransactionController;
 import com.ocbc_rpp.rest.exceptions.TransactionNotFoundException;
 import com.ocbc_rpp.rest.models.Transaction;
-import com.ocbc_rpp.rest.models.TransactionStoredPro;
 import com.ocbc_rpp.rest.models.dto.TransactionDto;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.hateoas.EntityModel;

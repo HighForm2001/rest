@@ -18,21 +18,23 @@ public class CustomerCase {
     EntityManagerFactory entityManagerFactory;
 
     public List<CustomerInfo> customerInfos(){
-        EntityManager em = entityManagerFactory.createEntityManager();
-        em.getTransaction().begin();
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
-        Root<Customer> root = query.from(Customer.class);
-        query.multiselect(root.get("accountNo")
-                ,root.get("name")
-                ,root.get("phoneNo")
-                ,root.get("balance")
-                ,cb.selectCase(cb.substring(root.get("phoneNo"),1,2))
-                        .when("60","MY")
-                        .when("61","AU")
-                        .when("65","SG")
-                        .otherwise("Other"));
-        return toInfo(em.createQuery(query).getResultList());
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
+            em.getTransaction().begin();
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+            Root<Customer> root = query.from(Customer.class);
+            query.multiselect(root.get("accountNo")
+                    , root.get("name")
+                    , root.get("phoneNo")
+                    , root.get("balance")
+                    , cb.selectCase(cb.substring(root.get("phoneNo"), 1, 2))
+                            .when("60", "MY")
+                            .when("61", "AU")
+                            .when("65", "SG")
+                            .otherwise("Other"));
+            return toInfo(em.createQuery(query).getResultList());
+        }
+
     }
     public List<CustomerInfo> toInfo(List<Object[]> list){
                 return list.stream().map(objects -> {

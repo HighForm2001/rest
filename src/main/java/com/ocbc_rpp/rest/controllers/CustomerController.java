@@ -1,22 +1,27 @@
 package com.ocbc_rpp.rest.controllers;
 
-import com.ocbc_rpp.rest.models.Customer;
 import com.ocbc_rpp.rest.exceptions.CustomerNotFoundException;
+import com.ocbc_rpp.rest.models.Customer;
 import com.ocbc_rpp.rest.models.CustomerInfo;
 import com.ocbc_rpp.rest.models.dto.CustomerDto;
 import com.ocbc_rpp.rest.services.CustomerService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/customers")
 public class CustomerController {
     private final CustomerService service;
+    private final CsrfTokenRepository csrfTokenRepository;
 
-    public CustomerController(CustomerService service) {
+    public CustomerController(CustomerService service, CsrfTokenRepository csrfTokenRepository) {
         this.service = service;
+        this.csrfTokenRepository = csrfTokenRepository;
     }
 
 
@@ -31,7 +36,10 @@ public class CustomerController {
     }
 
     @PostMapping
-    public ResponseEntity<?> newCustomer(@RequestBody Customer customer) {
+    public ResponseEntity<?> newCustomer(@RequestBody Customer customer, @RequestHeader(name = "X-XSRF-TOKEN") String token_string, HttpServletRequest request) {
+        CsrfToken token = csrfTokenRepository.loadToken(request);
+        if (token == null || !token.getToken().equals(token_string))
+            return ResponseEntity.badRequest().build();
         return service.newCustomer(customer);
     }
 

@@ -7,9 +7,12 @@ import com.ocbc_rpp.rest.models.TransactionReportSum;
 import com.ocbc_rpp.rest.models.dto.TransactionDto;
 import com.ocbc_rpp.rest.models.request.TransactionCreateRequest;
 import com.ocbc_rpp.rest.services.TransactionService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.format.DateTimeParseException;
@@ -18,8 +21,11 @@ import java.time.format.DateTimeParseException;
 @RequestMapping("/api/transaction")
 public class TransactionController {
     private final TransactionService service;
-    public TransactionController(TransactionService service){
+
+    private final CsrfTokenRepository csrfTokenRepository;
+    public TransactionController(TransactionService service, CsrfTokenRepository csrfTokenRepository){
         this.service = service;
+        this.csrfTokenRepository = csrfTokenRepository;
     }
 
     @GetMapping
@@ -33,9 +39,13 @@ public class TransactionController {
     }
 
     @PostMapping
-    public ResponseEntity<?> newTransaction(@RequestBody TransactionCreateRequest transaction)
+    public ResponseEntity<?> newTransaction(@RequestBody TransactionCreateRequest transaction, @RequestHeader(name = "X-XSRF-TOKEN") String token_string, HttpServletRequest request)
             throws CustomerNotFoundException {
+        CsrfToken token = csrfTokenRepository.loadToken(request);
+        if (token == null || !token.getToken().equals(token_string))
+            return ResponseEntity.badRequest().build();
         return service.newTransaction(transaction);
+
     }
 
     @GetMapping("/filter/id={id}/exclude={id2}")
@@ -56,12 +66,12 @@ public class TransactionController {
     }
 
     @GetMapping("/total/id={id}/amount={amount}")
-    public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWIthIdAndAmount(@PathVariable Long id, @PathVariable double amount){
+    public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWithIdAndAmount(@PathVariable Long id, @PathVariable double amount){
         return service.sumTotalDateWithIdAndAmount(id,amount);
     }
 
     @GetMapping("/total/id={id}/date={date_string}")
-    public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWIthIdAndDate(@PathVariable Long id,@PathVariable String date_string)throws DateTimeParseException {
+    public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWithIdAndDate(@PathVariable Long id, @PathVariable String date_string)throws DateTimeParseException {
 
         return service.sumTotalDateWithIdAndDate(id,date_string);
 
@@ -71,6 +81,16 @@ public class TransactionController {
     public CollectionModel<EntityModel<TransactionReportSum>>
     testSpecification(@PathVariable Long id,@PathVariable double amount) {
         return service.testSpecification(id,amount);
+    }
+
+    @GetMapping("/JpqlLeftJoinSum")
+    public CollectionModel<EntityModel<TransactionReportSum>> jpqlTest(){
+        return service.JpqlTest();
+    }
+
+    @GetMapping("/NativeQLeftJoinSum")
+    public CollectionModel<EntityModel<TransactionReportSum>> nativeQLeftJoinSum(){
+        return service.nativeQLeftJoinSum();
     }
 
     @GetMapping("/testStoredProcedure")
@@ -107,15 +127,9 @@ public class TransactionController {
         return service.pageSlice(name,page);
     }
 
-//    @GetMapping("/JpqlLeftJoinSum")
-//    public CollectionModel<EntityModel<TransactionReportSum>> JpqlTest(){
-//        return service.JpqlTest();
-//    }
-//
-//    @GetMapping("/NativeQLeftJoinSum")
-//    public CollectionModel<EntityModel<TransactionReportSum>> nativeQLeftJoinSum(){
-//        return service.nativeQLeftJoinSum();
-//    }
+
+
+
 
 
 

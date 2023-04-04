@@ -13,20 +13,24 @@ import javax.sql.DataSource;
 @EnableJpaRepositories(basePackages = "com.ocbc_rpp.rest.repositories")
 @EnableTransactionManagement
 public class SpringDataJpaConfiguration {
-    private final String username = "postgres";
-    private final String password = "1234";
-    private final String db_name = "transaction_db";
-    private final String db_link = "127.0.0.1";
-//    private final String db_link = "localhost";
 
-    private final String port = "5432";
+    private static final String word = "Password";
+    private static final String username = "postgres";
+    private static final String db_name = "transaction_db";
+    private static final String db_link = "127.0.0.1";
+    //    private final String db_link = "localhost";
+    private static final String port = "5432";
+    static {
+        System.setProperty(word,"1234");
+    }
+
     @Bean
     public DataSource dataSource() {
         return DataSourceBuilder.create()
                 .driverClassName("org.postgresql.Driver")
                 .url("jdbc:postgresql://"+db_link+":" + port +"/"+db_name)
                 .username(username)
-                .password(password)
+                .password(System.getProperty(word))
                 .build();
     }
 
