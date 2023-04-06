@@ -1,9 +1,6 @@
 package com.ocbc_rpp.rest.repositories;
 
-import com.ocbc_rpp.rest.models.Customer;
-import com.ocbc_rpp.rest.models.Transaction;
-import com.ocbc_rpp.rest.models.TransactionReportSum;
-import com.ocbc_rpp.rest.models.TransactionReportSumInterface;
+import com.ocbc_rpp.rest.models.*;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -55,5 +52,8 @@ public interface TransactionRepository extends
 
     Slice<Transaction> findByCreator_Name(String name, Pageable page);
 //    Page<Transaction> findByCreator_Name(String name, Pageable page);
+
+    // Temporary Table
+
 
 }

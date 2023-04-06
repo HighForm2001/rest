@@ -2,12 +2,14 @@ package com.ocbc_rpp.rest.services;
 
 import com.ocbc_rpp.rest.assemblers.CustomerModelAssembler;
 import com.ocbc_rpp.rest.controllers.CustomerController;
-import com.ocbc_rpp.rest.models.CustomerInfo;
-import com.ocbc_rpp.rest.models.dto.CustomerDto;
-import com.ocbc_rpp.rest.repositories.CustomerCase;
-import com.ocbc_rpp.rest.repositories.CustomerRepository;
-import com.ocbc_rpp.rest.models.Customer;
 import com.ocbc_rpp.rest.exceptions.CustomerNotFoundException;
+import com.ocbc_rpp.rest.models.Customer;
+import com.ocbc_rpp.rest.models.CustomerInfo;
+import com.ocbc_rpp.rest.models.TempAmount;
+import com.ocbc_rpp.rest.models.dto.CustomerDto;
+import com.ocbc_rpp.rest.repositories.CustomerRepository;
+import com.ocbc_rpp.rest.repositories.QueryCriteriaBuilder;
+import com.ocbc_rpp.rest.repositories.TempAmountRepository;
 import com.ocbc_rpp.rest.repositories.TransactionRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,6 +19,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.IanaLinkRelations;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -27,15 +30,20 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class CustomerService {
     private final CustomerRepository repository;
     private final TransactionRepository transactionRepository;
+
+    private final TempAmountRepository tempAmountRepository;
     private final CustomerModelAssembler assembler;
-    private final CustomerCase customerCase;
+    private final QueryCriteriaBuilder customerCriteriaBuilder;
+
 
     public CustomerService(CustomerRepository repository, CustomerModelAssembler assembler,
-                           TransactionRepository transactionRepository, CustomerCase customerCase) {
+                           TransactionRepository transactionRepository, QueryCriteriaBuilder customerCriteriaBuilder,
+                           TempAmountRepository tempAmountRepository) {
         this.repository = repository;
         this.assembler = assembler;
         this.transactionRepository = transactionRepository;
-        this.customerCase = customerCase;
+        this.customerCriteriaBuilder = customerCriteriaBuilder;
+        this.tempAmountRepository = tempAmountRepository;
     }
 
     public CollectionModel<EntityModel<CustomerDto>> all() {
@@ -85,14 +93,14 @@ public class CustomerService {
                 linkTo(methodOn(CustomerController.class).test_case_jpa()).withSelfRel());
     }
 
-    public CollectionModel<EntityModel<CustomerInfo>> caseSpecification(){
-        List<EntityModel<CustomerInfo>> model = customerCase
+    public CollectionModel<EntityModel<CustomerInfo>> caseSpecification() {
+        List<EntityModel<CustomerInfo>> model = customerCriteriaBuilder
                 .customerInfos()
                 .stream()
                 .map(assembler::toModel)
                 .toList();
         return CollectionModel
-                .of(model,linkTo(methodOn(CustomerController.class)
+                .of(model, linkTo(methodOn(CustomerController.class)
                         .caseSpecification()).withSelfRel());
     }
 
@@ -130,10 +138,12 @@ public class CustomerService {
         return CollectionModel.of(info, linkTo(methodOn(CustomerController.class).test_case_page(page_size)).withSelfRel());
     }
 
-    public CollectionModel<EntityModel<Customer>> all_with_transaction() {
-        List<EntityModel<Customer>> customer = repository
-                .findAll()
+    public CollectionModel<EntityModel<CustomerDto>> all_with_transaction() {
+        List<Customer> customers = repository.findAll();
+
+        List<EntityModel<CustomerDto>> customer = customers
                 .stream()
+                .map(Customer::toDto)
                 .map(assembler::toModel)
                 .toList();
         return CollectionModel.
@@ -142,10 +152,26 @@ public class CustomerService {
                         .withSelfRel());
     }
 
-    public CollectionModel<EntityModel<Customer>> did_Transaction() {
-        List<EntityModel<Customer>> customer = repository.findAllByTransactionsMadeIsNotNull()
-                .stream().map(assembler::toModel).toList();
+    public CollectionModel<EntityModel<CustomerDto>> did_Transaction() {
+        List<EntityModel<CustomerDto>> customer = repository.findAllByTransactionsMadeIsNotNull()
+                .stream()
+                .map(Customer::toDto)
+                .map(assembler::toModel)
+                .toList();
         return CollectionModel.of(customer, linkTo(methodOn(CustomerController.class).did_Transaction()).withSelfRel());
     }
 
+
+    public CollectionModel<EntityModel<TempAmount>> tempTable() {
+        List<TempAmount> balance = customerCriteriaBuilder.createAndUseTemporaryTable();
+        List<EntityModel<TempAmount>> entityModels = balance.stream().map(assembler::toModel).toList();
+        return CollectionModel.of(entityModels,linkTo(methodOn(CustomerController.class).tempTable()).withSelfRel());
+    }
+
+    @Transactional
+    public CollectionModel<EntityModel<TempAmount>> temp_pro(){
+        List<TempAmount> balance = tempAmountRepository.my_temp();
+        List<EntityModel<TempAmount>> entityModels = balance.stream().map(assembler::toModel).toList();
+        return CollectionModel.of(entityModels,linkTo(methodOn(CustomerController.class).temp_pro()).withSelfRel());
+    }
 }

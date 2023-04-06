@@ -12,7 +12,7 @@ import com.ocbc_rpp.rest.models.TransactionReportSum;
 import com.ocbc_rpp.rest.models.dto.TransactionDto;
 import com.ocbc_rpp.rest.models.request.TransactionCreateRequest;
 import com.ocbc_rpp.rest.repositories.CustomerRepository;
-import com.ocbc_rpp.rest.repositories.TransactionGroup;
+import com.ocbc_rpp.rest.repositories.QueryCriteriaBuilder;
 import com.ocbc_rpp.rest.repositories.TransactionRepository;
 import org.springframework.data.domain.*;
 import org.springframework.hateoas.CollectionModel;
@@ -42,11 +42,11 @@ public class    TransactionService {
     private final TransactionModelAssembler assembler;
     private final TransactionReportModelAssembler reportAssembler;
 
-    private final TransactionGroup group;
+    private final QueryCriteriaBuilder group;
     public TransactionService(TransactionRepository repo, CustomerRepository cusRepo,
                               TransactionModelAssembler assembler,
                               TransactionReportModelAssembler reportAssembler,
-                              TransactionGroup group){
+                              QueryCriteriaBuilder group){
 
         this.transactionRepository = repo;
         this.customerRepository = cusRepo;
@@ -217,7 +217,6 @@ public class    TransactionService {
         return generate_CollectionModel(reports,self);
     }
     public CollectionModel<EntityModel<TransactionReportSum>> sumTotalDateWithIdAndAmount(Long id, double amount) {
-//        List<TransactionReportSum> transactionReportSums = generateReport().stream().filter(s1->(s1.getId().equals(id) && s1.getAmount()>amount)).toList();
         List<TransactionReportSum> transactionReportSums = generateReport(id,amount);
         List<EntityModel<TransactionReportSum>> reports = transactionReportSums.stream().map(reportAssembler::toModel).toList();
         Link self = linkTo(methodOn(TransactionController.class).sumTotalDateWithIdAndAmount(id,amount)).withSelfRel();
@@ -237,7 +236,7 @@ public class    TransactionService {
 
     public CollectionModel<EntityModel<TransactionReportSum>>
     testSpecification(Long id, double amount){
-        List<TransactionReportSum> reportSums = group.groupByFilterIdAndAmount(id,amount);
+        List<TransactionReportSum> reportSums = group.transactionGroupByFilterIdAndAmount(id,amount);
         List<EntityModel<TransactionReportSum>> model = reportSums
                 .stream()
                 .map(reportAssembler::toModel).toList();
@@ -282,10 +281,8 @@ public class    TransactionService {
                 .stream()
                 .map(assembler::toModel)
                 .toList();
-//        System.out.println(transactionRepository.test_function3(id));
         Link self = linkTo(methodOn(TransactionController.class).testStoredProcedure2(id)).withSelfRel();
         return generate_CollectionModel(transactions,self);
-//        return  null;
     }
 
     public CollectionModel<EntityModel<TransactionDto>>
@@ -335,12 +332,6 @@ public class    TransactionService {
         return CollectionModel.of(list,
                 linkTo(methodOn(TransactionController.class).pageSlice(page,name)).withSelfRel());
     }
-
-
-//
-//
-//
-
 
     private <T> CollectionModel<EntityModel<T>> generate_CollectionModel(List<EntityModel<T>> list, Link selfLink){
         Link link1 = linkTo(methodOn(TransactionController.class).all()).withRel("api/transaction");

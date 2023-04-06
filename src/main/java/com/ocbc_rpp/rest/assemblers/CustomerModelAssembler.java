@@ -4,6 +4,7 @@ import com.ocbc_rpp.rest.controllers.CustomerController;
 import com.ocbc_rpp.rest.exceptions.CustomerNotFoundException;
 import com.ocbc_rpp.rest.models.Customer;
 import com.ocbc_rpp.rest.models.CustomerInfo;
+import com.ocbc_rpp.rest.models.TempAmount;
 import com.ocbc_rpp.rest.models.dto.CustomerDto;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.hateoas.EntityModel;
@@ -53,6 +54,13 @@ public class CustomerModelAssembler implements
                     linkTo(methodOn(CustomerController.class)
                             .test_case_jpql()).withRel("/api/customers/testCaseJPQL"));
         }catch(Exception e){
+            throw new RuntimeException(e);
+        }
+    }
+    public EntityModel<TempAmount> toModel(TempAmount tempAmount){
+        try{
+            return EntityModel.of(tempAmount,linkTo(methodOn(CustomerController.class).one(tempAmount.getAccountNo())).withSelfRel());
+        }catch (Exception e){
             throw new RuntimeException(e);
         }
     }

@@ -1,6 +1,8 @@
 package com.ocbc_rpp.rest.models;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ocbc_rpp.rest.models.dto.CustomerDto;
+import com.ocbc_rpp.rest.util.LazyFieldsFilter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,16 +28,18 @@ public class Customer {
 
     @OneToMany(cascade = CascadeType.ALL,
             mappedBy = "creator")
+    @JsonInclude(value = JsonInclude.Include.CUSTOM, valueFilter = LazyFieldsFilter.class)
     private List<Transaction>
             transactionsMade;
 
     @OneToMany(cascade = CascadeType.ALL,
             mappedBy = "receiver")
+    @JsonInclude(value = JsonInclude.Include.CUSTOM, valueFilter = LazyFieldsFilter.class)
     private List<Transaction>
             transactionsReceive;
 
 
     public CustomerDto toDto(){
-        return new CustomerDto(this.accountNo,this.name,this.phoneNo,this.balance);
+        return new CustomerDto(this.accountNo,this.name,this.phoneNo,this.balance,this.transactionsMade,this.transactionsReceive);
     }
 }

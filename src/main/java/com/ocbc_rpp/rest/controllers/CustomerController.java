@@ -3,6 +3,7 @@ package com.ocbc_rpp.rest.controllers;
 import com.ocbc_rpp.rest.exceptions.CustomerNotFoundException;
 import com.ocbc_rpp.rest.models.Customer;
 import com.ocbc_rpp.rest.models.CustomerInfo;
+import com.ocbc_rpp.rest.models.TempAmount;
 import com.ocbc_rpp.rest.models.dto.CustomerDto;
 import com.ocbc_rpp.rest.services.CustomerService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -74,13 +75,23 @@ public class CustomerController {
     }
 
     @GetMapping("/transaction") // left join
-    public CollectionModel<EntityModel<Customer>> all_with_transaction(){
+    public CollectionModel<EntityModel<CustomerDto>> all_with_transaction(){
         return service.all_with_transaction();
     }
 
     @GetMapping("/didTransaction")
-    public CollectionModel<EntityModel<Customer>> did_Transaction(){
+    public CollectionModel<EntityModel<CustomerDto>> did_Transaction(){
         return service.did_Transaction();
     }
 
+    @GetMapping("/tempTable")
+    public CollectionModel<EntityModel<TempAmount>> tempTable(){
+        return service.tempTable();
+    }
+
+
+    @GetMapping("/storedTemp")
+    public CollectionModel<EntityModel<TempAmount>> temp_pro() {
+        return service.temp_pro();
+    }
 }

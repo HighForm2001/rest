@@ -19,7 +19,7 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf().ignoringRequestMatchers(request -> HttpMethod.POST.matches(request.getMethod()))
+        http.csrf().ignoringRequestMatchers(request -> HttpMethod.GET.matches(request.getMethod()))
         .csrfTokenRepository(csrfTokenRepository())
                 .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
                 .and()
