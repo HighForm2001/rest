@@ -26,12 +26,12 @@ public class Transaction {
     @Column(name = "transaction_id")
     private int transactionID;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name="from_acc_id")
     @JsonIgnore
     private Customer creator;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name="to_acc_id")
     @JsonIgnore
     private Customer receiver;
@@ -55,5 +55,16 @@ public class Transaction {
                 ,this.receiver.getAccountNo());
     }
 
-
+    @Override
+    public String toString() {
+        return "Transaction{" +
+                "transaction_reference=" + transaction_reference +
+                ", amount=" + amount +
+                ", currency='" + currency + '\'' +
+                ", transactionID=" + transactionID +
+                ", creator=" + creator.getName() +
+                ", receiver=" + receiver.getName() +
+                ", transactionDate=" + transactionDate +
+                '}';
+    }
 }

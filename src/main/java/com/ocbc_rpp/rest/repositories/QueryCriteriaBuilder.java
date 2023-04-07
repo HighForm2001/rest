@@ -24,9 +24,9 @@ public class QueryCriteriaBuilder {
         try (EntityManager em = entityManagerFactory.createEntityManager()) {
             String c = "creator";
             String acc = "accountNo";
-            em.getTransaction().begin();
+//            em.getTransaction().begin();
             CriteriaBuilder cb = em.getCriteriaBuilder();
-            CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+            CriteriaQuery<TransactionReportSum> query = cb.createQuery(TransactionReportSum.class);
             Root<Transaction> root = query.from(Transaction.class);
             List<Selection<?>> selectList = new ArrayList<>();
             selectList.add(root.get(c).get("name"));
@@ -41,8 +41,7 @@ public class QueryCriteriaBuilder {
             Predicate equalAccount = cb.equal(root.get(c).get(acc), id);
             Predicate amountGreater = cb.greaterThanOrEqualTo(root.get("amount"), amount);
             query.multiselect(selectList).groupBy(groupByList).where(cb.and(equalAccount, amountGreater));
-            List<Object[]> list = em.createQuery(query).getResultList();
-            return transactionToReport(list);
+            return em.createQuery(query).getResultList();
         }
 
     }
@@ -59,9 +58,9 @@ public class QueryCriteriaBuilder {
     }
     public List<CustomerInfo> customerInfos(){
         try (EntityManager em = entityManagerFactory.createEntityManager()) {
-            em.getTransaction().begin();
+//            em.getTransaction().begin();
             CriteriaBuilder cb = em.getCriteriaBuilder();
-            CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+            CriteriaQuery<CustomerInfo> query = cb.createQuery(CustomerInfo.class);
             Root<Customer> root = query.from(Customer.class);
             query.multiselect(root.get("accountNo")
                     , root.get("name")
@@ -72,14 +71,15 @@ public class QueryCriteriaBuilder {
                             .when("61", "AU")
                             .when("65", "SG")
                             .otherwise("Other"));
-            return customerToInfo(em.createQuery(query).getResultList());
+//            return customerToInfo(em.createQuery(query).getResultList());
+            return em.createQuery(query).getResultList();
         }
 
     }
     public List<CustomerInfo> customerToInfo(List<Object[]> list){
         return list.stream().map(objects -> {
             CustomerInfo info = new CustomerInfo();
-            info.setAccountNo(Long.parseLong(objects[0].toString()));
+            info.setId(Long.parseLong(objects[0].toString()));
             info.setName(objects[1].toString());
             info.setPhone_no(objects[2].toString());
             info.setBalance(Double.parseDouble(objects[3].toString()));

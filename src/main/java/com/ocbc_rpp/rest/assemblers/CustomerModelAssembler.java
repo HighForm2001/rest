@@ -48,7 +48,7 @@ public class CustomerModelAssembler implements
         try{
             return EntityModel.of(customer,
                     linkTo(methodOn(CustomerController.class)
-                            .one(customer.getAccountNo())).withSelfRel(),
+                            .one(customer.getId())).withSelfRel(),
                     linkTo(methodOn(CustomerController.class)
                             .test_case_native()).withRel("/api/customers/testCaseNative"),
                     linkTo(methodOn(CustomerController.class)

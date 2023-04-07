@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CustomerInfo {
-    private Long accountNo;
+    private Long id;
     private String name;
     private String phone_no;
     private double balance;

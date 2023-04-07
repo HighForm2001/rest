@@ -4,10 +4,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.ocbc_rpp.rest.models.dto.CustomerDto;
 import com.ocbc_rpp.rest.util.LazyFieldsFilter;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -23,6 +20,8 @@ public class Customer {
     @Column(name = "account_no")
     private Long accountNo;
     private String name;
+
+    @Column(name = "phone_no")
     private String phoneNo; //phone_no
     private double balance;
 
@@ -41,5 +40,14 @@ public class Customer {
 
     public CustomerDto toDto(){
         return new CustomerDto(this.accountNo,this.name,this.phoneNo,this.balance,this.transactionsMade,this.transactionsReceive);
+    }
+
+    @Override
+    public String toString() {
+        return "Customer{" +
+                "accountNo=" + accountNo +
+                ", name='" + name + '\'' +
+                ", phoneNo='" + phoneNo + '\'' +
+                ", balance=" + balance + '}';
     }
 }

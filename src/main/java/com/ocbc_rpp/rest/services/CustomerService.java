@@ -132,7 +132,7 @@ public class CustomerService {
 
     public CollectionModel<EntityModel<CustomerInfo>> test_case_page(int page_size) {
         Sort.TypedSort<CustomerInfo> sort = Sort.sort(CustomerInfo.class);
-        Sort type = sort.by(CustomerInfo::getAccountNo).descending().and(sort.by(CustomerInfo::getBalance).ascending());
+        Sort type = sort.by(CustomerInfo::getId).descending().and(sort.by(CustomerInfo::getBalance).ascending());
         Page<CustomerInfo> page = repository.findCustomerInfoJpql(PageRequest.of(page_size, 5, type));
         List<EntityModel<CustomerInfo>> info = page.getContent().stream().map(assembler::toModel).toList();
         return CollectionModel.of(info, linkTo(methodOn(CustomerController.class).test_case_page(page_size)).withSelfRel());
